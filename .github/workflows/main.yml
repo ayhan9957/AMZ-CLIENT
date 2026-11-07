@@ -20,7 +20,7 @@ jobs:
 
       - name: Extract project
         run: |
-          unzip -q AMZ_CLIENT_GitHub_Build.zip -d project
+          unzip -q AMZ_CLIENT_APK_Project.zip -d project
           WRAPPER=$(find project -name gradlew -type f | head -n 1)
           test -n "$WRAPPER"
           echo "PROJECT_DIR=$(dirname "$WRAPPER")" >> $GITHUB_ENV
