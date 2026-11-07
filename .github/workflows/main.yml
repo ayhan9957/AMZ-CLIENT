@@ -4,15 +4,14 @@ name: Build AMZ Client APK
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download project
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Java
@@ -21,53 +20,31 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Check and extract ZIP
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Extract project
         run: |
-          python3 - <<'PY'
-          import zipfile
-          import os
-          import sys
+          unzip -o AMZ_CLIENT_APK_Project.zip -d project
 
-          archive = "AMZ_CLIENT_APK_Project.zip"
-
-          if not os.path.isfile(archive):
-              print("ERROR: ZIP file not found!")
-              sys.exit(1)
-
-          with zipfile.ZipFile(archive) as z:
-              print("ZIP FILE CONTENTS:")
-              for name in z.namelist()[:100]:
-                  print(name)
-
-              bad = z.testzip()
-              if bad:
-                  print("BROKEN FILE:", bad)
-                  sys.exit(1)
-
-              z.extractall("project")
-
-          print("ZIP extraction successful!")
-          PY
-
-      - name: Find Gradle project
+      - name: Find Android project
         run: |
-          WRAPPER=$(find project -type f -name gradlew | head -n 1)
-
-          if [ -z "$WRAPPER" ]; then
-            echo "ERROR: gradlew not found!"
-            find project -maxdepth 5 -type f | head -100
+          PROJECT_DIR=$(find project -name settings.gradle -type f | head -n 1 | xargs dirname)
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "Android project not found"
             exit 1
           fi
-
-          PROJECT_DIR=$(dirname "$WRAPPER")
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-          echo "Found project: $PROJECT_DIR"
 
       - name: Build APK
         run: |
           cd "$PROJECT_DIR"
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
