@@ -1,6 +1,8 @@
+
 package com.amz.client;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,19 +28,24 @@ public class MainActivity extends Activity {
 
     private TextView text(String s, int size, int color, boolean bold) {
         TextView t = new TextView(this);
-        t.setText(s); t.setTextSize(size); t.setTextColor(color);
+        t.setText(s);
+        t.setTextSize(size);
+        t.setTextColor(color);
         if (bold) t.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         return t;
     }
 
     private Button button(String caption) {
         Button b = new Button(this);
-        b.setText(caption); b.setAllCaps(false); b.setTextColor(Color.WHITE);
+        b.setText(caption);
+        b.setAllCaps(false);
+        b.setTextColor(Color.WHITE);
         b.setBackground(rounded(0xDD211629, 0xFFFF426D));
         return b;
     }
 
-    @Override public void onCreate(Bundle b) {
+    @Override
+    public void onCreate(Bundle b) {
         super.onCreate(b);
         getWindow().setStatusBarColor(Color.BLACK);
         getWindow().setNavigationBarColor(Color.BLACK);
@@ -48,6 +55,7 @@ public class MainActivity extends Activity {
 
         video = new VideoView(this);
         frame.addView(video, new FrameLayout.LayoutParams(-1, -1));
+
         Uri uri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.amz_background);
         video.setVideoURI(uri);
         video.setOnPreparedListener(mp -> {
@@ -69,6 +77,7 @@ public class MainActivity extends Activity {
         TextView logo = text("AMZ CLIENT", 32, Color.WHITE, true);
         logo.setGravity(Gravity.CENTER);
         content.addView(logo);
+
         TextView version = text("BEDROCK EDITION  •  1.21.93", 12, 0xFFFFA9BD, true);
         version.setGravity(Gravity.CENTER);
         content.addView(version);
@@ -83,6 +92,7 @@ public class MainActivity extends Activity {
         content.addView(panel, new LinearLayout.LayoutParams(-1, -2));
 
         panel.addView(text("ANA MENÜ", 13, 0xFFFFA9BD, true));
+
         TextView headline = text("Minecraft'a hoş geldin", 22, Color.WHITE, true);
         headline.setPadding(0, 8, 0, 14);
         panel.addView(headline);
@@ -100,7 +110,8 @@ public class MainActivity extends Activity {
         about.setOnClickListener(v -> new AlertDialog.Builder(this)
             .setTitle("AMZ CLIENT")
             .setMessage("Bu APK, Bedrock için yardımcı başlatıcı/arayüz prototipidir. Minecraft'ın kendi oyun kodunu değiştirmez.")
-            .setPositiveButton("Tamam", null).show());
+            .setPositiveButton("Tamam", null)
+            .show());
 
         status = text("Hazır • Minecraft Bedrock 1.21.93 hedefleniyor", 12, Color.WHITE, false);
         status.setGravity(Gravity.CENTER);
@@ -113,42 +124,58 @@ public class MainActivity extends Activity {
 
     private LinearLayout.LayoutParams lp() {
         LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-1, 54);
-        p.topMargin = 9; return p;
+        p.topMargin = 9;
+        return p;
     }
 
     private void launchBedrock() {
         Intent i = getPackageManager().getLaunchIntentForPackage("com.mojang.minecraftpe");
-        if (i != null) startActivity(i);
-        else new AlertDialog.Builder(this)
-            .setTitle("Minecraft bulunamadı")
-            .setMessage("Önce Minecraft Bedrock'ı bu cihaza yükle. Bu uygulama Minecraft'ın yerine geçmez.")
-            .setPositiveButton("Tamam", null).show();
+
+        if (i != null) {
+            startActivity(i);
+        } else {
+            new AlertDialog.Builder(this)
+                .setTitle("Minecraft bulunamadı")
+                .setMessage("Önce Minecraft Bedrock'ı bu cihaza yükle. Bu uygulama Minecraft'ın yerine geçmez.")
+                .setPositiveButton("Tamam", null)
+                .show();
+        }
     }
 
     private void showSettings() {
         LinearLayout box = new LinearLayout(this);
         box.setPadding(20, 8, 20, 8);
         box.setOrientation(LinearLayout.VERTICAL);
+
         addToggle(box, "FPS göstergesi (arayüz taslağı)");
         addToggle(box, "CPS göstergesi (arayüz taslağı)");
         addToggle(box, "Yerel rainbow halka görünümü (demo)");
         addToggle(box, "Menü düğmelerini kişiselleştir");
-        new AlertDialog.Builder(this).setTitle("AMZ kişiselleştirme")
-            .setView(box).setPositiveButton("Kapat", null).show();
+
+        new AlertDialog.Builder(this)
+            .setTitle("AMZ kişiselleştirme")
+            .setView(box)
+            .setPositiveButton("Kapat", null)
+            .show();
     }
 
     private void addToggle(LinearLayout parent, String name) {
         Switch s = new Switch(this);
-        s.setText(name); s.setTextColor(Color.WHITE);
+        s.setText(name);
+        s.setTextColor(Color.WHITE);
         parent.addView(s);
     }
 
-    @Override protected void onResume() {
+    @Override
+    protected void onResume() {
         super.onResume();
         if (video != null && !video.isPlaying()) video.start();
     }
-    @Override protected void onPause() {
+
+    @Override
+    protected void onPause() {
         if (video != null && video.isPlaying()) video.pause();
         super.onPause();
     }
 }
+
