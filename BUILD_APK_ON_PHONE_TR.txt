@@ -1,0 +1,17 @@
+AMZ CLIENT APK'YI TELEFONDAN OLUSTURMA (GitHub Actions)
+
+Bu ZIP kaynak projedir; APK degildir. Icindeki workflow GitHub'in bulut bilgisayarinda APK derler.
+
+1) ZIP'i telefonda cikart.
+2) GitHub hesabina gir ve New repository ile AMZ-CLIENT adinda bos bir repo olustur.
+3) Cikartilan AMZ_CLIENT_APK_Project klasorunun ICINDEKILERINI (klasorun kendisini degil) repoya yukle. .github klasorunun da yuklendiginden emin ol.
+4) Repo sayfasinda Actions sekmesine gir.
+5) Soldan 'Build AMZ CLIENT APK' workflow'unu sec ve 'Run workflow' tusuna bas.
+6) Islem bitince calisan workflow'a gir, Artifacts bolumunden 'AMZ_CLIENT-apk' dosyasini indir.
+7) ZIP artifact'ini telefonda ac; icindeki AMZ_CLIENT.apk dosyasini kur.
+
+Notlar:
+- GitHub hesabi gerekir; bu adimlar telefondaki tarayicidan yapilabilir.
+- Ilk build internet uzerinden Android SDK/Gradle indirir.
+- Bu APK yardimci uygulamadir: video menusu gosterir ve yuklu Bedrock'i baslatir. Minecraft'in kendi arayuzunu veya oyun ici ozelliklerini degistirmez.
+- Debug APK test icindir; dagitim icin ayri release signing gerekir.
