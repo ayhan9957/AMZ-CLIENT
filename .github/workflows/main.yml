@@ -46,9 +46,19 @@ jobs:
       - name: Build APK
         run: |
           cd "$PROJECT_DIR"
-          gradle assembleDebug
+          set -o pipefail
+          gradle assembleDebug --stacktrace --info --console=plain 2>&1 | tee build.log
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AMZ-BUILD-LOG
+          path: project/**/build.log
+          if-no-files-found: warn
 
       - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: AMZ-CLIENT-APK
