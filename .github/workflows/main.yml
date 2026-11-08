@@ -70,6 +70,29 @@ jobs:
           tree.write(path, encoding='utf-8', xml_declaration=True)
           PY
 
+      - name: Launch original Minecraft automatically
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+          files = list(Path("project").glob("**/app/src/main/java/**/MainActivity.java"))
+          if not files:
+              raise SystemExit("MainActivity.java not found in extracted Android app")
+          patched = False
+          for path in files:
+              source = path.read_text(encoding="utf-8")
+              if "openMinecraft()" not in source or "showHome();" not in source:
+                  continue
+              updated, count = re.subn(r"(protected\\s+void\\s+onCreate\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?)showHome\\(\\);", r"\\1openMinecraft();", source, count=1)
+              if count:
+                  path.write_text(updated, encoding="utf-8")
+                  print(f"Automatic original Minecraft launch enabled in {path}")
+                  patched = True
+                  break
+          if not patched:
+              raise SystemExit("Could not safely patch MainActivity: expected onCreate/showHome/openMinecraft pattern was not found")
+          PY
+
       - name: Find Android project
         run: |
           PROJECT_DIR=$(find project -name settings.gradle -type f | head -n 1 | xargs dirname)
