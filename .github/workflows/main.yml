@@ -106,7 +106,7 @@ jobs:
                   continue
               source = source.replace(old, 'findMinecraftIntent()', 1)
               helper = '''\n    private Intent findMinecraftIntent() {
-        String[] packages = {"com.mojang.minecraftpe", "com.mojang.minecraftpreview"};
+        String[] packages = {"com.mojang.minecraftpe", "com.mojang.minecraftpf"};
         for (String packageName : packages) {
             Intent launchIntent = getPackageManager().getLaunchIntentForPackage(packageName);
             if (launchIntent != null) return launchIntent;
