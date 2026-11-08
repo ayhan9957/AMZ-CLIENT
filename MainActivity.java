@@ -136,7 +136,7 @@ public class MainActivity extends Activity {
             }
 
             if (intent != null) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                // Launch Minecraft from this Activity task; keep AMZ Client in Recents.
                 startActivity(intent);
                 // Keep AMZ Client alive behind Minecraft so its overlay stays available.
             } else {
