@@ -124,16 +124,21 @@ public class AMZOverlayService extends Service {
     private View bubble, panel;
     private LinearLayout moduleList, tabList;
     private String activeCategory = "COMBAT";
-    private final String[] categories = {"COMBAT","MOVEMENT","VISUAL","WORLD","MISC"};
+    private final String[] categories = {"CAM","FLY","ATTACK","AIM","ESP","BLOCK","XRAY","HITBOX","C-F"};
     private final String[][] modules = {
-        {"KillAura","Attack assist • Demo"},{"AutoClick","Tap automation • Demo"},{"Aim Assist","Target helper • Demo"},
-        {"FreeCam","Camera controls • Demo"},{"Fly","Movement module • Demo"},{"Speed","Movement tuning • Demo"},
-        {"Player ESP","Player overlay • Demo"},{"Chest ESP","Container highlight • Demo"},{"Xray","Block visibility • Demo"},
-        {"Scaffold","Block placement • Demo"},{"FPS","Frame counter • Demo"},{"CPS","Click counter • Demo"},{"FPS Boost","Performance preset • Demo"}
+        {"FreeCam","Camera controls • Demo"},{"ViewLock","View lock • Demo"},{"WireLock","Wire view • Demo"},
+        {"Gravity","Gravity control • Demo"},{"Speed","Movement speed • Demo"},
+        {"AutoClick","Tap automation • Demo"},{"KillAura","Attack assist • Demo"},
+        {"Target","Target selector • Demo"},{"Aimbot","Aim helper • Demo"},
+        {"Player ESP","Player overlay • Demo"},{"ESP-Chest","Chest highlight • Demo"},
+        {"Scaffold","Block placement • Demo"},
+        {"Xray","Block visibility • Demo"},{"Xray-Ore","Ore highlight • Demo"},
+        {"Hitbox","Hitbox display • Demo"},{"Rainbow Hitbox","Animated hitbox • Demo"},
+        {"FPS","Frame counter • Demo"},{"CPS","Click counter • Demo"},{"FPS Boost","Performance preset • Demo"}
     };
     private final String[] moduleCategories = {
-        "COMBAT","COMBAT","COMBAT","MOVEMENT","MOVEMENT","MOVEMENT",
-        "VISUAL","VISUAL","VISUAL","WORLD","MISC","MISC","MISC"
+        "CAM","CAM","CAM","FLY","FLY","ATTACK","ATTACK","AIM","AIM",
+        "ESP","ESP","BLOCK","XRAY","XRAY","HITBOX","HITBOX","C-F","C-F","C-F"
     };
 
     private int dp(float n) { return (int)(n * getResources().getDisplayMetrics().density + .5f); }
