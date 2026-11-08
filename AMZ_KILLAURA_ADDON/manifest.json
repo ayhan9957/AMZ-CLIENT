@@ -1,0 +1,25 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "AMZ Client - KillAura (Mob Test)",
+    "description": "AMZ KillAura prototype for worlds where this behavior pack is enabled.",
+    "uuid": "1a8d0c61-8f8c-4a7a-9b21-1f8d7d6e4101",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 21, 80]
+  },
+  "modules": [
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "2b9e1d72-9a9d-4b8b-8c32-2a9e8e7f5202",
+      "version": [1, 0, 0],
+      "entry": "scripts/main.js"
+    }
+  ],
+  "dependencies": [
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.0.0"
+    }
+  ]
+}
