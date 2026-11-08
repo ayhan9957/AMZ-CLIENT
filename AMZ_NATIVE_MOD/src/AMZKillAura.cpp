@@ -44,6 +44,10 @@ bool registerSettings() {
     return module.registerModule();
 }
 
+void suspend() noexcept {
+    g_enabled.store(false, std::memory_order_relaxed);
+}
+
 void unregisterSettings() {
     g_enabled.store(false, std::memory_order_relaxed);
     pl::modmenu::unregisterModule("amz.killaura");
