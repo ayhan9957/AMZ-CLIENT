@@ -195,8 +195,8 @@ jobs:
               if package_line not in loading_source:
                   raise SystemExit("MinecraftLoadingActivity package declaration not found")
               loading_source = loading_source.replace(package_line, package_line + "\n" + kotlin_import + "\n", 1)
-          transition_marker = "        if (returningToLauncher || isFinishing || isDestroyed) return\\n        startActivity(gameIntent)"
-          transition_replacement = "        if (returningToLauncher || isFinishing || isDestroyed) return\\n        AMZOverlayPermissionManager.startOverlayIfAllowed(this)\\n        startActivity(gameIntent)"
+          transition_marker = "        if (returningToLauncher || isFinishing || isDestroyed) return\n        startActivity(gameIntent)"
+          transition_replacement = "        if (returningToLauncher || isFinishing || isDestroyed) return\n        AMZOverlayPermissionManager.startOverlayIfAllowed(this)\n        startActivity(gameIntent)"
           if transition_marker not in loading_source:
               raise SystemExit("Minecraft transition insertion point not found")
           loading_source = loading_source.replace(transition_marker, transition_replacement, 1)
