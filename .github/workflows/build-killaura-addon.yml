@@ -1,0 +1,27 @@
+name: Build AMZ KillAura Add-on
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "AMZ_KILLAURA_ADDON/**"
+      - ".github/workflows/build-killaura-addon.yml"
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Package mcpack
+        run: |
+          cd AMZ_KILLAURA_ADDON
+          zip -r ../AMZ-KILLAURA.mcpack manifest.json scripts
+
+      - name: Upload mcpack
+        uses: actions/upload-artifact@v4
+        with:
+          name: AMZ-KILLAURA-MCPACK
+          path: AMZ-KILLAURA.mcpack
+          if-no-files-found: error
