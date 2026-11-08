@@ -155,7 +155,7 @@ jobs:
           ):
               if f'android:name="{required}"' not in xml:
                   application = xml.index('<application')
-                  xml = xml[:application] + f'    <uses-permission android:name="{required}" />\\n' + xml[application:]
+                  xml = xml[:application] + f'    <uses-permission android:name="{required}" />' + chr(10) + xml[application:]
 
           manifest.write_text(xml)
           PY
