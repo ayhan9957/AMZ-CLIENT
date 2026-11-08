@@ -1,0 +1,131 @@
+name: AMZ Isolated Launcher Gradle Build
+
+on:
+  push:
+    branches:
+      - amz-launcher-integration
+    paths:
+      - ".github/workflows/amz-launcher-gradle-validation.yml"
+      - "AMZ_LAUNCHER_PORT/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-gradle-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout AMZ and pinned LeviLauncher source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install pinned Android NDK and CMake
+        run: sdkmanager --install "platforms;android-36" "build-tools;36.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
+
+      - name: Create isolated build copy and disable private Discord integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          src="$GITHUB_WORKSPACE/AMZ_LAUNCHER_PORT/LeviLaunchroid"
+          dst="$RUNNER_TEMP/AMZ-LeviLauncher-validation"
+          test -f "$src/gradlew"
+          test -f "$src/app/build.gradle"
+          cp -a "$src" "$dst"
+          export AMZ_VALIDATION_DIR="$dst"
+          python3 <<'PY'
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["AMZ_VALIDATION_DIR"])
+          gradle_file = root / "app/build.gradle"
+          source = gradle_file.read_text()
+
+          for line in (
+              "    alias(libs.plugins.google.services)\\n",
+              "    alias(libs.plugins.firebase.crashlytics)\\n",
+              "    implementation files('libs/discord_partner_sdk.aar')\\n",
+          ):
+              if line not in source:
+                  raise SystemExit(f"Expected upstream integration line not found: {line.strip()}")
+              source = source.replace(line, "")
+
+          # Remove only the three Crashlytics DSL blocks; preserve the surrounding build types.
+          marker = "firebaseCrashlytics {"
+          while marker in source:
+              start = source.index(marker)
+              brace = source.index("{", start)
+              depth = 0
+              end = None
+              for i in range(brace, len(source)):
+                  if source[i] == "{":
+                      depth += 1
+                  elif source[i] == "}":
+                      depth -= 1
+                      if depth == 0:
+                          end = i + 1
+                          break
+              if end is None:
+                  raise SystemExit("Unbalanced firebaseCrashlytics block")
+              line_start = source.rfind("\\n", 0, start) + 1
+              line_end = source.find("\\n", end)
+              if line_end == -1:
+                  line_end = end
+              else:
+                  line_end += 1
+              source = source[:line_start] + source[line_end:]
+
+          gradle_file.write_text(source)
+
+          discord_dir = root / "app/src/main/java/org/levimc/launcher/core/discord"
+          (discord_dir / "DiscordPresence.java").unlink()
+          (discord_dir / "DiscordPresence.java").write_text("""package org.levimc.launcher.core.discord;
+
+          import android.app.Application;
+
+          /** AMZ validation-only stub. Discord presence is intentionally disabled. */
+          public final class DiscordPresence {
+              private DiscordPresence() {}
+              public static void initialize(Application application) {}
+              public static boolean isConfigured() { return false; }
+              public static void refresh() {}
+              public static void shutdown() {}
+          }
+          """)
+
+          if "discord_partner_sdk.aar" in gradle_file.read_text():
+              raise SystemExit("Private Discord AAR reference remains")
+          if "libs.plugins.google.services" in gradle_file.read_text():
+              raise SystemExit("Google Services plugin remains enabled")
+          if "libs.plugins.firebase.crashlytics" in gradle_file.read_text():
+              raise SystemExit("Crashlytics Gradle plugin remains enabled")
+          if marker in gradle_file.read_text():
+              raise SystemExit("Crashlytics DSL remains enabled")
+          print("Isolated copy prepared; upstream source and AMZ application files were not modified.")
+          PY
+          chmod +x "$dst/gradlew"
+          echo "AMZ_VALIDATION_DIR=$dst" >> "$GITHUB_ENV"
+
+      - name: Build isolated upstream launcher APK
+        working-directory: ${{ runner.temp }}/AMZ-LeviLauncher-validation
+        run: ./gradlew --no-daemon --stacktrace :app:assembleDebug
+
+      - name: Upload isolated validation APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AMZ-LeviLauncher-Isolated-Validation
+          path: ${{ runner.temp }}/AMZ-LeviLauncher-validation/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
