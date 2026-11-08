@@ -33,15 +33,6 @@ public class MainActivity extends Activity {
         openMinecraftAutomatically();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (minecraftWasLaunched) {
-            stopService(new Intent(this, AMZOverlayService.class));
-            minecraftWasLaunched = false;
-        }
-    }
-
     private GradientDrawable shape(int color, int radius) {
         GradientDrawable drawable = new GradientDrawable();
         drawable.setColor(color);
