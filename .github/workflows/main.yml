@@ -86,7 +86,7 @@ jobs:
                   print(f"PE and PF launch support already present in {path}")
                   raise SystemExit(0)
 
-              match = re.search(r"\\bonCreate\\s*\\([^)]*\\)\\s*\\{", source)
+              match = re.search(r"\bonCreate\s*\([^)]*\)\s*\{", source)
               if not match:
                   continue
 
