@@ -100,7 +100,6 @@ jobs:
           activity = candidates[0]
           package_dir = activity.parent
           service = package_dir / "AMZOverlayService.java"
-          service.write_text(r'''
           service_source = Path("AMZ_OVERLAY/src/main/java/com/amz/client/AMZOverlayService.java")
           if not service_source.is_file():
               raise SystemExit(f"Overlay source missing: {service_source}")
