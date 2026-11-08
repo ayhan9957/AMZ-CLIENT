@@ -25,11 +25,21 @@ public class MainActivity extends Activity {
     private int bg = Color.rgb(13, 15, 25);
     private int panel = Color.rgb(25, 29, 45);
     private int accent = Color.rgb(190, 70, 255);
+    private boolean minecraftWasLaunched = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         openMinecraftAutomatically();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (minecraftWasLaunched) {
+            stopService(new Intent(this, AMZOverlayService.class));
+            minecraftWasLaunched = false;
+        }
     }
 
     private GradientDrawable shape(int color, int radius) {
@@ -138,6 +148,7 @@ public class MainActivity extends Activity {
             if (intent != null) {
                 // Launch Minecraft in its own task so AMZ Client remains visible in Recents.
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                minecraftWasLaunched = true;
                 startActivity(intent);
                 // Do not call finish(): keep the AMZ Client task alive behind Minecraft.
                 // Keep AMZ Client alive behind Minecraft so its overlay stays available.
