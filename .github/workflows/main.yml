@@ -63,10 +63,11 @@ jobs:
               raise SystemExit('Manifest has no application element')
           app.set(android + 'icon', '@drawable/amz_eye')
           perm_name = '{http://schemas.android.com/apk/res/android}name'
-          if not any(p.get(perm_name) == 'android.permission.SYSTEM_ALERT_WINDOW' for p in root.findall('uses-permission')):
-              p = ET.Element('uses-permission')
-              p.set(perm_name, 'android.permission.SYSTEM_ALERT_WINDOW')
-              root.insert(0, p)
+          for permission in ('android.permission.SYSTEM_ALERT_WINDOW', 'android.permission.PACKAGE_USAGE_STATS'):
+              if not any(p.get(perm_name) == permission for p in root.findall('uses-permission')):
+                  p = ET.Element('uses-permission')
+                  p.set(perm_name, permission)
+                  root.insert(0, p)
           tree.write(path, encoding='utf-8', xml_declaration=True)
           PY
 
@@ -113,6 +114,10 @@ jobs:
           import android.graphics.Typeface;
           import android.graphics.drawable.GradientDrawable;
           import android.os.IBinder;
+          import android.os.Handler;
+          import android.os.Looper;
+          import android.app.usage.UsageEvents;
+          import android.app.usage.UsageStatsManager;
           import android.view.Gravity;
           import android.view.MotionEvent;
           import android.view.View;
@@ -128,6 +133,39 @@ jobs:
               private WindowManager.LayoutParams bubbleParams;
               private View bubble, panel;
               private LinearLayout moduleList, tabList;
+              private final Handler monitorHandler = new Handler(Looper.getMainLooper());
+              private final long serviceStartedAt = System.currentTimeMillis();
+              private final Runnable foregroundMonitor = new Runnable() {
+                  @Override public void run() {
+                      try {
+                          UsageStatsManager usage = (UsageStatsManager)getSystemService(USAGE_STATS_SERVICE);
+                          long now = System.currentTimeMillis();
+                          UsageEvents events = usage.queryEvents(now - 30000L, now);
+                          UsageEvents.Event event = new UsageEvents.Event();
+                          String latestForeground = null;
+                          while (events != null && events.hasNextEvent()) {
+                              events.getNextEvent(event);
+                              int type = event.getEventType();
+                              if (type == UsageEvents.Event.MOVE_TO_FOREGROUND ||
+                                  (android.os.Build.VERSION.SDK_INT >= 29 &&
+                                   type == UsageEvents.Event.ACTIVITY_RESUMED)) {
+                                  latestForeground = event.getPackageName();
+                              }
+                          }
+                          boolean minecraftForeground =
+                              "com.mojang.minecraftpe".equals(latestForeground) ||
+                              "com.mojang.minecraftpf".equals(latestForeground);
+                          // Allow Minecraft time to finish opening before checking the foreground app.
+                          if (!minecraftForeground && now - serviceStartedAt > 12000L) {
+                              stopSelf();
+                              return;
+                          }
+                      } catch (Exception ignored) {
+                          // Keep the overlay alive if Android temporarily withholds usage events.
+                      }
+                      monitorHandler.postDelayed(this, 1000L);
+                  }
+              };
               private String activeCategory = "CAM";
               private final String[] categories = {"CAM","FLY","ATTACK","AIM","ESP","BLOCK","XRAY","HITBOX","C-F"};
               private final String[][] modules = {
@@ -163,6 +201,7 @@ jobs:
               @Override public void onCreate() {
                   super.onCreate();
                   wm = (WindowManager)getSystemService(WINDOW_SERVICE);
+                  monitorHandler.postDelayed(foregroundMonitor, 12000L);
                   ImageView b = new ImageView(this);
                   int logoId = getResources().getIdentifier("amz_eye", "drawable", getPackageName());
                   if (logoId != 0) b.setImageResource(logoId);
@@ -307,6 +346,7 @@ jobs:
                       .withEndAction(()->{try{wm.removeView(old);}catch(Exception ignored){}}).start();
               }
               @Override public void onDestroy() {
+                  monitorHandler.removeCallbacks(foregroundMonitor);
                   if(panel!=null)try{wm.removeView(panel);}catch(Exception ignored){}
                   if(bubble!=null)try{wm.removeView(bubble);}catch(Exception ignored){}
                   super.onDestroy();
