@@ -1,4 +1,5 @@
 #include "AMZNativeMod.h"
+#include "AMZRuntimeProbe.h"
 #include <pl/Mod.hpp>
 #include <filesystem>
 #include <system_error>
@@ -20,6 +21,15 @@ bool AMZNativeMod::load() {
         return false;
     }
     self.getLogger().info("AMZ Native loaded. Minecraft version target: 1.21.93");
+
+    RuntimeModule minecraft{};
+    if (findMinecraftModule(minecraft)) {
+        self.getLogger().info("AMZ: libminecraftpe.so detected at {} ({} bytes)",
+                              reinterpret_cast<void *>(minecraft.base),
+                              minecraft.size);
+    } else {
+        self.getLogger().warn("AMZ: libminecraftpe.so is not mapped yet; runtime hooks remain inactive");
+    }
     return true;
 }
 
