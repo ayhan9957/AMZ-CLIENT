@@ -22,19 +22,21 @@ bool AMZNativeMod::load() {
     }
     self.getLogger().info("AMZ Native loaded. Minecraft version target: 1.21.93");
 
-    RuntimeModule minecraft{};
-    if (findMinecraftModule(minecraft)) {
-        self.getLogger().info("AMZ: libminecraftpe.so detected at {} ({} bytes)",
-                              reinterpret_cast<void *>(minecraft.base),
-                              minecraft.size);
-    } else {
-        self.getLogger().warn("AMZ: libminecraftpe.so is not mapped yet; runtime hooks remain inactive");
-    }
     return true;
 }
 
 bool AMZNativeMod::enable() {
-    getSelf().getLogger().info("AMZ Native enabled.");
+    auto &logger = getSelf().getLogger();
+    logger.info("AMZ Native enabled; checking Minecraft runtime.");
+
+    RuntimeModule minecraft{};
+    if (findMinecraftModule(minecraft)) {
+        logger.info("AMZ: libminecraftpe.so detected at {} ({} bytes)",
+                    reinterpret_cast<void *>(minecraft.base),
+                    minecraft.size);
+    } else {
+        logger.warn("AMZ: libminecraftpe.so is not mapped at enable time; no game hooks will be installed");
+    }
     return true;
 }
 
