@@ -123,7 +123,7 @@ public class AMZOverlayService extends Service {
     private WindowManager.LayoutParams bubbleParams;
     private View bubble, panel;
     private LinearLayout moduleList, tabList;
-    private String activeCategory = "COMBAT";
+    private String activeCategory = "CAM";
     private final String[] categories = {"CAM","FLY","ATTACK","AIM","ESP","BLOCK","XRAY","HITBOX","C-F"};
     private final String[][] modules = {
         {"FreeCam","Camera controls • Demo"},{"ViewLock","View lock • Demo"},{"WireLock","Wire view • Demo"},
