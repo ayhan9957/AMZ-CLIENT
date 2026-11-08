@@ -33,6 +33,40 @@ jobs:
         run: |
           unzip -o AMZ_CLIENT_APK_Project.zip -d project
 
+      - name: Inspect extracted AMZ Android project
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          roots = list(Path("project").glob("**/settings.gradle"))
+          if not roots:
+              raise SystemExit("No settings.gradle found")
+          root = roots[0].parent
+          print("=== PROJECT ROOT ===")
+          print(root)
+          print("=== PROJECT FILE TREE ===")
+          for p in sorted(root.rglob("*")):
+              if p.is_file() and (p.suffix in {".java", ".kt", ".gradle", ".xml", ".properties"} or p.name in {"gradle.properties", "settings.gradle"}):
+                  print(p.relative_to(root))
+          selected = []
+          for p in sorted(root.rglob("*")):
+              if not p.is_file():
+                  continue
+              rel = p.relative_to(root).as_posix()
+              if p.name in {"settings.gradle", "build.gradle", "gradle.properties", "AndroidManifest.xml"} or (p.suffix in {".java", ".kt"} and "/src/main/" in "/" + rel):
+                  selected.append(p)
+          print("=== SOURCE CONTENTS ===")
+          budget = 120000
+          for p in selected:
+              data = p.read_text(encoding="utf-8", errors="replace")
+              if len(data) > 18000:
+                  data = data[:18000] + "\\n...[TRUNCATED]..."
+              if len(data) > budget:
+                  print("SOURCE BUDGET REACHED")
+                  break
+              print(f"\\n===== FILE: {p.relative_to(root)} =====\\n{data}")
+              budget -= len(data)
+          PY
+
       - name: Apply AMZ launcher icon and overlay permission
         run: |
           PROJECT_DIR=$(find project -name settings.gradle -type f | head -n 1 | xargs dirname)
