@@ -26,6 +26,7 @@ public class MainActivity extends Activity {
     private int panel = Color.rgb(25, 29, 45);
     private int accent = Color.rgb(190, 70, 255);
     private boolean minecraftWasLaunched = false;
+    private boolean gameWasBackgrounded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -144,9 +145,27 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        // Minecraft takes the foreground after AMZ launches it.
+        if (minecraftWasLaunched) {
+            gameWasBackgrounded = true;
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
-        // Called again when the user returns from Android's permission screen.
+
+        // When Minecraft is closed and AMZ becomes visible again, remove the bubble.
+        if (minecraftWasLaunched && gameWasBackgrounded) {
+            stopService(new Intent(this, AMZOverlayService.class));
+            minecraftWasLaunched = false;
+            gameWasBackgrounded = false;
+            return;
+        }
+
+        // Returning from Android's overlay-permission page starts the game once.
         if (!minecraftWasLaunched && android.provider.Settings.canDrawOverlays(this)) {
             launchGameAndOverlay();
         }
@@ -194,6 +213,7 @@ public class MainActivity extends Activity {
             }
 
             if (intent != null) {
+                minecraftWasLaunched = true;
                 startActivity(intent);
             } else {
                 new AlertDialog.Builder(this)
