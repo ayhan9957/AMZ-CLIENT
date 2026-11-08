@@ -29,7 +29,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        showHome();
+        openMinecraftAutomatically();
     }
 
     private GradientDrawable shape(int color, int radius) {
@@ -118,6 +118,39 @@ public class MainActivity extends Activity {
         TextView space = new TextView(this);
         space.setHeight(25);
         root.addView(space);
+    }
+
+    private void openMinecraftAutomatically() {
+        try {
+            if (android.provider.Settings.canDrawOverlays(this)) {
+                startService(new Intent(this, AMZOverlayService.class));
+            } else {
+                Toast.makeText(this, "AMZ yuvarlak menüsü için Üstte göster izni gerekli.", Toast.LENGTH_LONG).show();
+            }
+
+            Intent intent = getPackageManager()
+                    .getLaunchIntentForPackage("com.mojang.minecraftpe");
+            if (intent == null) {
+                intent = getPackageManager()
+                        .getLaunchIntentForPackage("com.mojang.minecraftpf");
+            }
+
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+            } else {
+                showHome();
+                new AlertDialog.Builder(this)
+                        .setTitle("Minecraft bulunamadı")
+                        .setMessage("Minecraft PE veya PF cihazda kurulu değil.")
+                        .setPositiveButton("Tamam", null)
+                        .show();
+            }
+        } catch (Exception e) {
+            showHome();
+            Toast.makeText(this, "Minecraft açılamadı: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void openMinecraft() {
