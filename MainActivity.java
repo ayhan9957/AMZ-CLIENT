@@ -28,7 +28,6 @@ public class MainActivity extends Activity {
     private int panel = Color.rgb(25, 29, 45);
     private int accent = Color.rgb(190, 70, 255);
     private boolean minecraftWasLaunched = false;
-    private boolean gameWasBackgrounded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -179,25 +178,11 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        if (minecraftWasLaunched) {
-            gameWasBackgrounded = true;
-        }
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
 
-        // Returning to AMZ after leaving Minecraft is a fallback cleanup.
-        if (minecraftWasLaunched && gameWasBackgrounded) {
-            stopService(new Intent(this, AMZOverlayService.class));
-            minecraftWasLaunched = false;
-            gameWasBackgrounded = false;
-            return;
-        }
-
+        // Do not stop the overlay on transient activity resumes while Minecraft loads a world.
+        // The overlay service independently detects when another app is truly foregrounded.
         if (!minecraftWasLaunched) {
             continuePermissionSetup();
         }
