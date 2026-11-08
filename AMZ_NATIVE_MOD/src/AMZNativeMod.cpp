@@ -36,9 +36,10 @@ bool AMZNativeMod::enable() {
 
     RuntimeModule minecraft{};
     if (findMinecraftModule(minecraft)) {
-        logger.info("AMZ: libminecraftpe.so detected at {} ({} bytes)",
+        logger.info("AMZ: libminecraftpe.so detected at {} ({} bytes; ELF build-id: {})",
                     reinterpret_cast<void *>(minecraft.base),
-                    minecraft.size);
+                    minecraft.size,
+                    minecraft.buildId[0] != '\\0' ? minecraft.buildId.data() : "unavailable");
     } else {
         logger.warn("AMZ: libminecraftpe.so is not mapped at enable time; no game hooks will be installed");
     }
