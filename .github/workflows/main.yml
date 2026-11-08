@@ -114,6 +114,7 @@ jobs:
           import android.view.View;
           import android.view.WindowManager;
           import android.widget.HorizontalScrollView;
+          import android.widget.ImageView;
           import android.widget.LinearLayout;
           import android.widget.ScrollView;
           import android.widget.TextView;
@@ -158,10 +159,12 @@ jobs:
               @Override public void onCreate() {
                   super.onCreate();
                   wm = (WindowManager)getSystemService(WINDOW_SERVICE);
-                  TextView b = new TextView(this);
-                  b.setText("A"); b.setTextColor(Color.WHITE); b.setTextSize(21);
-                  b.setTypeface(Typeface.DEFAULT, Typeface.BOLD); b.setGravity(Gravity.CENTER);
-                  b.setBackground(bg(Color.rgb(23,18,39), 40, Color.rgb(190,105,255)));
+                  ImageView b = new ImageView(this);
+                  int logoId = getResources().getIdentifier("amz_eye", "drawable", getPackageName());
+                  if (logoId != 0) b.setImageResource(logoId);
+                  b.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                  b.setPadding(dp(5), dp(5), dp(5), dp(5));
+                  b.setBackground(bg(Color.rgb(13,9,25), 40, Color.rgb(190,105,255)));
                   b.setElevation(dp(12)); bubble = b;
                   bubbleParams = new WindowManager.LayoutParams(dp(58), dp(58),
                       WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
