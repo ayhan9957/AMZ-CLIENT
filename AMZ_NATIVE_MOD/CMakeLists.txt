@@ -32,7 +32,8 @@ target_include_directories(amz_native PRIVATE src "${LEVI_PRELOADER_INCLUDE_DIR}
 target_link_libraries(amz_native PRIVATE preloader)
 target_link_options(amz_native PRIVATE "-Wl,-z,max-page-size=16384")
 find_library(log-lib log REQUIRED)
-target_link_libraries(amz_native PRIVATE ${log-lib})
+find_library(dl-lib dl REQUIRED)
+target_link_libraries(amz_native PRIVATE ${log-lib} ${dl-lib})
 
 set(MOD_PACKAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/package/amz_native")
 file(MAKE_DIRECTORY "${MOD_PACKAGE_DIR}")
