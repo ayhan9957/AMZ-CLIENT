@@ -125,4 +125,4 @@ jobs:
           name: AMZ-LeviLauncher-Isolated-Validation
           path: ${{ runner.temp }}/AMZ-LeviLauncher-validation/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 30
