@@ -2,6 +2,7 @@
 package com.amz.client;
 
 import android.app.Activity;
+import android.app.AppOpsManager;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
@@ -9,6 +10,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Process;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -122,12 +124,44 @@ public class MainActivity extends Activity {
         root.addView(space);
     }
 
+    private boolean hasUsageAccess() {
+        try {
+            AppOpsManager appOps = (AppOpsManager)getSystemService(APP_OPS_SERVICE);
+            int mode = appOps.checkOpNoThrow(
+                    AppOpsManager.OPSTR_GET_USAGE_STATS,
+                    Process.myUid(),
+                    getPackageName());
+            return mode == AppOpsManager.MODE_ALLOWED;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private void openMinecraftAutomatically() {
+        continuePermissionSetup();
+    }
+
+    private void continuePermissionSetup() {
+        // Usage access lets AMZ notice when Minecraft is no longer the foreground app.
+        if (!hasUsageAccess()) {
+            try {
+                Toast.makeText(this,
+                        "Yuvarlağın oyundan çıkınca kapanması için Kullanım erişimini aç.",
+                        Toast.LENGTH_LONG).show();
+                startActivity(new Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS));
+            } catch (Exception e) {
+                showHome();
+                Toast.makeText(this, "Kullanım erişimi ayarları açılamadı.",
+                        Toast.LENGTH_LONG).show();
+            }
+            return;
+        }
+
         // Android requires this one-time special permission for the floating bubble.
         if (!android.provider.Settings.canDrawOverlays(this)) {
             try {
                 Toast.makeText(this,
-                        "Yuvarlak menü için izni bir kez aç; sonra Minecraft otomatik başlayacak.",
+                        "Yuvarlak menü için Üstte göster iznini aç; sonra Minecraft başlayacak.",
                         Toast.LENGTH_LONG).show();
                 Intent settings = new Intent(
                         android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -147,7 +181,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        // Minecraft takes the foreground after AMZ launches it.
         if (minecraftWasLaunched) {
             gameWasBackgrounded = true;
         }
@@ -157,7 +190,7 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        // When Minecraft is closed and AMZ becomes visible again, remove the bubble.
+        // Returning to AMZ after leaving Minecraft is a fallback cleanup.
         if (minecraftWasLaunched && gameWasBackgrounded) {
             stopService(new Intent(this, AMZOverlayService.class));
             minecraftWasLaunched = false;
@@ -165,9 +198,8 @@ public class MainActivity extends Activity {
             return;
         }
 
-        // Returning from Android's overlay-permission page starts the game once.
-        if (!minecraftWasLaunched && android.provider.Settings.canDrawOverlays(this)) {
-            launchGameAndOverlay();
+        if (!minecraftWasLaunched) {
+            continuePermissionSetup();
         }
     }
 
