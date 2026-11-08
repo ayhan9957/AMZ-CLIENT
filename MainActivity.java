@@ -122,12 +122,40 @@ public class MainActivity extends Activity {
     }
 
     private void openMinecraftAutomatically() {
-        try {
-            if (android.provider.Settings.canDrawOverlays(this)) {
-                startService(new Intent(this, AMZOverlayService.class));
-            } else {
-                Toast.makeText(this, "AMZ yuvarlak menüsü için Üstte göster izni gerekli.", Toast.LENGTH_LONG).show();
+        // Android requires this one-time special permission for the floating bubble.
+        if (!android.provider.Settings.canDrawOverlays(this)) {
+            try {
+                Toast.makeText(this,
+                        "Yuvarlak menü için izni bir kez aç; sonra Minecraft otomatik başlayacak.",
+                        Toast.LENGTH_LONG).show();
+                Intent settings = new Intent(
+                        android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + getPackageName()));
+                startActivity(settings);
+            } catch (Exception e) {
+                showHome();
+                Toast.makeText(this, "İzin ayarları açılamadı: " + e.getMessage(),
+                        Toast.LENGTH_LONG).show();
             }
+            return;
+        }
+
+        launchGameAndOverlay();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Called again when the user returns from Android's permission screen.
+        if (!minecraftWasLaunched && android.provider.Settings.canDrawOverlays(this)) {
+            launchGameAndOverlay();
+        }
+    }
+
+    private void launchGameAndOverlay() {
+        if (minecraftWasLaunched) return;
+        try {
+            startService(new Intent(this, AMZOverlayService.class));
 
             Intent intent = getPackageManager()
                     .getLaunchIntentForPackage("com.mojang.minecraftpe");
@@ -137,12 +165,9 @@ public class MainActivity extends Activity {
             }
 
             if (intent != null) {
-                // Launch Minecraft in its own task so AMZ Client remains visible in Recents.
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 minecraftWasLaunched = true;
                 startActivity(intent);
-                // Do not call finish(): keep the AMZ Client task alive behind Minecraft.
-                // Keep AMZ Client alive behind Minecraft so its overlay stays available.
             } else {
                 showHome();
                 new AlertDialog.Builder(this)
@@ -153,7 +178,8 @@ public class MainActivity extends Activity {
             }
         } catch (Exception e) {
             showHome();
-            Toast.makeText(this, "Minecraft açılamadı: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Minecraft açılamadı: " + e.getMessage(),
+                    Toast.LENGTH_LONG).show();
         }
     }
 
