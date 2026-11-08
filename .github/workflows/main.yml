@@ -99,139 +99,23 @@ jobs:
           activity = candidates[0]
           package_dir = activity.parent
           service = package_dir / "AMZOverlayService.java"
-          service.write_text(r'''package com.amz.client;
-
-          import android.app.Service;
-          import android.content.Intent;
-          import android.graphics.Color;
-          import android.graphics.PixelFormat;
-          import android.graphics.drawable.GradientDrawable;
-          import android.os.IBinder;
-          import android.view.Gravity;
-          import android.view.MotionEvent;
-          import android.view.View;
-          import android.view.WindowManager;
-          import android.widget.LinearLayout;
-          import android.widget.TextView;
-
-          public class AMZOverlayService extends Service {
-              private WindowManager wm;
-              private WindowManager.LayoutParams bubbleParams;
-              private View bubble;
-              private View panel;
-
-              private GradientDrawable bg(int color, int radius) {
-                  GradientDrawable d = new GradientDrawable();
-                  d.setColor(color);
-                  d.setCornerRadius(radius);
-                  d.setStroke(3, Color.rgb(190, 70, 255));
-                  return d;
-              }
-
-              @Override public void onCreate() {
-                  super.onCreate();
-                  wm = (WindowManager) getSystemService(WINDOW_SERVICE);
-                  bubble = new TextView(this);
-                  ((TextView) bubble).setText("AMZ");
-                  ((TextView) bubble).setTextColor(Color.WHITE);
-                  ((TextView) bubble).setTextSize(14);
-                  ((TextView) bubble).setGravity(Gravity.CENTER);
-                  bubble.setBackground(bg(Color.rgb(35, 18, 55), 100));
-                  bubbleParams = new WindowManager.LayoutParams(
-                       sixty(), sixty(),
-                      WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                      WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                      PixelFormat.TRANSLUCENT);
-                  bubbleParams.gravity = Gravity.TOP | Gravity.END;
-                  bubbleParams.x = 18;
-                  bubbleParams.y = 150;
-                  bubble.setOnTouchListener(new View.OnTouchListener() {
-                      float downX, downY;
-                      int startX, startY;
-                      boolean moved;
-                      public boolean onTouch(View v, MotionEvent e) {
-                          if (e.getAction() == MotionEvent.ACTION_DOWN) {
-                              downX=e.getRawX(); downY=e.getRawY();
-                              startX=bubbleParams.x; startY=bubbleParams.y; moved=false;
-                              return true;
-                          }
-                          if (e.getAction() == MotionEvent.ACTION_MOVE) {
-                              float dx=e.getRawX()-downX, dy=e.getRawY()-downY;
-                              if (Math.abs(dx)>8 || Math.abs(dy)>8) moved=true;
-                              bubbleParams.x=startX-(int)dx;
-                              bubbleParams.y=startY+(int)dy;
-                              wm.updateViewLayout(bubble,bubbleParams);
-                              return true;
-                          }
-                          if (e.getAction() == MotionEvent.ACTION_UP) {
-                              if (!moved) togglePanel();
-                              return true;
-                          }
-                          return true;
-                      }
-                  });
-                  wm.addView(bubble, bubbleParams);
-              }
-
-              private int sixty() { return (int)(60 * getResources().getDisplayMetrics().density); }
-
-              private void togglePanel() {
-                  if (panel != null) {
-                      try { wm.removeView(panel); } catch (Exception ignored) {}
-                      panel = null;
-                      return;
-                  }
-                  LinearLayout box = new LinearLayout(this);
-                  box.setOrientation(LinearLayout.VERTICAL);
-                  box.setPadding(16, 12, 16, 12);
-                  box.setBackground(bg(Color.rgb(18, 16, 30), 24));
-                  String[][] groups = {
-                      {"CAM", "FreeCam", "ViewLock", "WireLock"},
-                      {"FLY", "Gravity", "Speed"},
-                      {"ATTACK", "AutoClick", "KillAura"},
-                      {"AIM", "Target", "Aimbot"},
-                      {"ESP", "Player ESP", "ESP-Chest"},
-                      {"BLOCK", "Scaffold"},
-                      {"XRAY", "Xray", "Xray-Ore"},
-                      {"HITBOX", "Hitbox", "Rainbow Hitbox"},
-                      {"C-F", "FPS", "CPS", "FPS Boost"}
-                  };
-                  for (String[] group : groups) {
-                      TextView title = new TextView(this);
-                      title.setText("▸ " + group[0]);
-                      title.setTextColor(Color.rgb(210, 120, 255));
-                      title.setTextSize(14);
-                      title.setPadding(8, 7, 8, 4);
-                      box.addView(title);
-                      for (int i=1;i<group.length;i++) {
-                          TextView item = new TextView(this);
-                          item.setText("   ◯  " + group[i]);
-                          item.setTextColor(Color.WHITE);
-                          item.setTextSize(13);
-                          item.setPadding(8, 5, 8, 5);
-                          box.addView(item);
-                      }
-                  }
-                  WindowManager.LayoutParams p = new WindowManager.LayoutParams(
-                      (int)(230*getResources().getDisplayMetrics().density),
-                      WindowManager.LayoutParams.WRAP_CONTENT,
-                      WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                      WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                      PixelFormat.TRANSLUCENT);
-                  p.gravity = Gravity.TOP | Gravity.END;
-                  p.x = 16; p.y = 220;
-                  panel = box;
-                  wm.addView(panel, p);
-              }
-
-              @Override public void onDestroy() {
-                  if (panel != null) try { wm.removeView(panel); } catch (Exception ignored) {}
-                  if (bubble != null) try { wm.removeView(bubble); } catch (Exception ignored) {}
-                  super.onDestroy();
-              }
-              @Override public IBinder onBind(Intent intent) { return null; }
-          }
-          ''', encoding="utf-8")
+          service.write_text(r'''\n          package com.amz.client;
+          import android.app.Service;import android.content.Intent;import android.graphics.Color;import android.graphics.PixelFormat;import android.graphics.drawable.GradientDrawable;import android.os.IBinder;import android.view.Gravity;import android.view.MotionEvent;import android.view.View;import android.view.WindowManager;import android.widget.LinearLayout;import android.widget.ScrollView;import android.widget.TextView;
+          public class AMZOverlayService extends Service{
+          private WindowManager wm;private WindowManager.LayoutParams bp;private View bubble,panel;
+          private int dp(float v){return(int)(v*getResources().getDisplayMetrics().density+.5f);}
+          private GradientDrawable shape(int c,int r,int st){GradientDrawable d=new GradientDrawable();d.setColor(c);d.setCornerRadius(dp(r));d.setStroke(dp(1),st);return d;}
+          @Override public void onCreate(){super.onCreate();wm=(WindowManager)getSystemService(WINDOW_SERVICE);TextView b=new TextView(this);b.setText("AMZ");b.setTextColor(-1);b.setTextSize(14);b.setTypeface(null,1);b.setGravity(Gravity.CENTER);b.setBackground(shape(Color.rgb(38,18,58),40,Color.rgb(205,95,255)));bubble=b;bp=new WindowManager.LayoutParams(dp(58),dp(58),WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,PixelFormat.TRANSLUCENT);bp.gravity=Gravity.TOP|Gravity.END;bp.x=dp(14);bp.y=dp(145);
+          bubble.setOnTouchListener(new View.OnTouchListener(){float x,y;int sx,sy;boolean moved;public boolean onTouch(View v,MotionEvent ev){if(ev.getAction()==0){x=ev.getRawX();y=ev.getRawY();sx=bp.x;sy=bp.y;moved=false;return true;}if(ev.getAction()==2){float dx=ev.getRawX()-x,dy=ev.getRawY()-y;if(Math.abs(dx)>dp(5)||Math.abs(dy)>dp(5))moved=true;bp.x=sx-(int)dx;bp.y=sy+(int)dy;try{wm.updateViewLayout(bubble,bp);}catch(Exception ignored){}return true;}if(ev.getAction()==1){if(!moved)toggle();return true;}return true;}});wm.addView(bubble,bp);}
+          private TextView txt(String s,int z,int c){TextView t=new TextView(this);t.setText(s);t.setTextSize(z);t.setTextColor(c);t.setPadding(dp(10),dp(9),dp(10),dp(9));return t;}
+          private void toggle(){if(panel!=null){close();return;}LinearLayout card=new LinearLayout(this);card.setOrientation(1);card.setPadding(dp(13),dp(10),dp(13),dp(10));card.setBackground(shape(Color.rgb(17,15,29),22,Color.rgb(190,75,255)));
+          LinearLayout head=new LinearLayout(this);head.setGravity(Gravity.CENTER_VERTICAL);TextView h=txt("AMZ CLIENT  •  MENU",16,-1);h.setTypeface(null,1);head.addView(h,new LinearLayout.LayoutParams(0,dp(46),1));TextView x=txt("✕",20,-1);x.setGravity(Gravity.CENTER);x.setOnClickListener(v->close());head.addView(x,new LinearLayout.LayoutParams(dp(40),dp(42)));card.addView(head);
+          ScrollView sc=new ScrollView(this);LinearLayout list=new LinearLayout(this);list.setOrientation(1);String[][] gs={{"CAM","FreeCam","ViewLock","WireLock"},{"FLY","Gravity","Speed"},{"ATTACK","AutoClick","KillAura"},{"AIM","Target","Aimbot"},{"ESP","Player ESP","ESP-Chest"},{"BLOCK","Scaffold"},{"XRAY","Xray","Xray-Ore"},{"HITBOX","Hitbox","Rainbow Hitbox"},{"C-F","FPS","CPS","FPS Boost"}};
+          for(String[] g:gs){TextView cat=txt("▾  "+g[0],13,Color.rgb(215,150,255));cat.setTypeface(null,1);cat.setBackground(shape(Color.rgb(42,28,58),11,Color.TRANSPARENT));LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,dp(37));cp.setMargins(0,dp(5),0,dp(3));list.addView(cat,cp);for(int j=1;j<g.length;j++){final TextView o=txt("○   "+g[j],14,-1);o.setBackground(shape(Color.rgb(29,27,42),10,Color.rgb(55,45,70)));LinearLayout.LayoutParams op=new LinearLayout.LayoutParams(-1,dp(42));op.setMargins(dp(3),dp(2),dp(3),dp(2));list.addView(o,op);o.setOnClickListener(v->{boolean on=o.getTag()==null||!((Boolean)o.getTag());o.setTag(on);String n=o.getText().toString().substring(4);o.setText((on?"●   ":"○   ")+n);o.setTextColor(on?Color.rgb(225,165,255):-1);o.setBackground(shape(on?Color.rgb(67,35,91):Color.rgb(29,27,42),10,on?Color.rgb(190,75,255):Color.rgb(55,45,70)));o.animate().scaleX(.97f).scaleY(.97f).setDuration(70).withEndAction(()->o.animate().scaleX(1).scaleY(1).setDuration(90).start()).start();});}}
+          sc.addView(list);card.addView(sc,new LinearLayout.LayoutParams(-1,dp(390)));WindowManager.LayoutParams p=new WindowManager.LayoutParams(Math.min(dp(285),getResources().getDisplayMetrics().widthPixels-dp(28)),WindowManager.LayoutParams.WRAP_CONTENT,WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,PixelFormat.TRANSLUCENT);p.gravity=Gravity.TOP|Gravity.END;p.x=dp(12);p.y=dp(210);panel=card;wm.addView(panel,p);panel.setAlpha(0);panel.setScaleX(.92f);panel.setScaleY(.92f);panel.animate().alpha(1).scaleX(1).scaleY(1).setDuration(180).start();}
+          private void close(){if(panel==null)return;View old=panel;panel=null;old.animate().alpha(0).scaleX(.92f).scaleY(.92f).setDuration(130).withEndAction(()->{try{wm.removeView(old);}catch(Exception ignored){}}).start();}
+          @Override public void onDestroy(){if(panel!=null)try{wm.removeView(panel);}catch(Exception ignored){}if(bubble!=null)try{wm.removeView(bubble);}catch(Exception ignored){}super.onDestroy();}@Override public IBinder onBind(Intent i){return null;}
+          }\n          ''', encoding="utf-8")
           manifest = activity.parents[4] / "AndroidManifest.xml"
           if not manifest.exists():
               manifests = list(Path("project").glob("**/app/src/main/AndroidManifest.xml"))
