@@ -33,7 +33,7 @@ jobs:
         run: |
           unzip -o AMZ_CLIENT_APK_Project.zip -d project
 
-      - name: Apply AMZ launcher icon
+      - name: Apply AMZ launcher icon and overlay permission
         run: |
           PROJECT_DIR=$(find project -name settings.gradle -type f | head -n 1 | xargs dirname)
           if [ -z "$PROJECT_DIR" ]; then
@@ -70,46 +70,57 @@ jobs:
           tree.write(path, encoding='utf-8', xml_declaration=True)
           PY
 
-      - name: Launch original Minecraft automatically
+      - name: Launch original Minecraft PE automatically
         run: |
           python3 <<'PY'
           from pathlib import Path
           import re
+
           files = list(Path("project").glob("**/app/src/main/java/**/MainActivity.java"))
           if not files:
               raise SystemExit("MainActivity.java not found in extracted Android app")
-          patched = False
-          for path in files:
-              source = path.read_text(encoding="utf-8")
-              if "openMinecraft()" not in source or "showHome();" not in source:
-                  continue
-              updated, count = re.subn(r"(protected\s+void\s+onCreate\s*\([^)]*\)\s*\{[\s\S]*?)showHome\(\);", r"\1openMinecraft();", source, count=1)
-              if count:
-                  path.write_text(updated, encoding="utf-8")
-                  print(f"Automatic original Minecraft launch enabled in {path}")
-                  patched = True
-                  break
-          if not patched:
-              raise SystemExit("Could not safely patch MainActivity: expected onCreate/showHome/openMinecraft pattern was not found")
-          PY
 
-      - name: Support Minecraft PE only
-        run: |
-          python3 <<'PY'
-          from pathlib import Path
-          files = list(Path("project").glob("**/app/src/main/java/**/MainActivity.java"))
-          patched = False
           for path in files:
               source = path.read_text(encoding="utf-8")
-              old = 'getPackageManager().getLaunchIntentForPackage("com.mojang.minecraftpe")'
-              if old not in source:
+              match = re.search(r"\bonCreate\s*\([^)]*\)\s*\{", source)
+              if not match:
                   continue
+
+              # Find the matching closing brace of onCreate without relying on method names.
+              opening = source.find("{", match.start())
+              depth = 0
+              closing = None
+              for i in range(opening, len(source)):
+                  if source[i] == "{":
+                      depth += 1
+                  elif source[i] == "}":
+                      depth -= 1
+                      if depth == 0:
+                          closing = i
+                          break
+              if closing is None:
+                  continue
+
+              body = source[opening:closing]
+              if "com.mojang.minecraftpe" in body and "getLaunchIntentForPackage" in body:
+                  print(f"Minecraft PE launch already present in {path}")
+                  raise SystemExit(0)
+
+              launch = '''
+                  android.content.Intent amzMinecraftIntent =
+                      getPackageManager().getLaunchIntentForPackage("com.mojang.minecraftpe");
+                  if (amzMinecraftIntent != null) {
+                      startActivity(amzMinecraftIntent);
+                  } else {
+                      android.widget.Toast.makeText(this, "Minecraft PE yüklü değil", android.widget.Toast.LENGTH_LONG).show();
+                  }
+              '''
+              source = source[:closing] + launch + source[closing:]
               path.write_text(source, encoding="utf-8")
-              print(f"Minecraft PE only launch configured in {path}")
-              patched = True
-              break
-          if not patched:
-              raise SystemExit("Could not find the Minecraft PE launch call")
+              print(f"Inserted automatic Minecraft PE launch into {path}")
+              raise SystemExit(0)
+
+          raise SystemExit("Could not find onCreate method in MainActivity.java")
           PY
 
       - name: Find Android project
