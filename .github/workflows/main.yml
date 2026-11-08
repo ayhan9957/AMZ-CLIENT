@@ -125,7 +125,7 @@ jobs:
                   "        }",
                   ""
               ]
-              launch = "\\n".join(launch_lines)
+              launch = "\n".join(launch_lines)
               source = source[:closing] + launch + source[closing:]
               path.write_text(source, encoding="utf-8")
               print(f"Inserted PE and PF launch support into {path}")
