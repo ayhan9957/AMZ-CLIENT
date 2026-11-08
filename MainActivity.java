@@ -123,9 +123,12 @@ public class MainActivity extends Activity {
     private void openMinecraft() {
         try {
             Intent intent = getPackageManager()
-                    .getLaunchIntentForPackage(
-                            "com.mojang.minecraftpe"
-                    );
+                    .getLaunchIntentForPackage("com.mojang.minecraftpe");
+
+            if (intent == null) {
+                intent = getPackageManager()
+                        .getLaunchIntentForPackage("com.mojang.minecraftpf");
+            }
 
             if (intent != null) {
                 startActivity(intent);
@@ -133,7 +136,7 @@ public class MainActivity extends Activity {
                 new AlertDialog.Builder(this)
                         .setTitle("Minecraft bulunamadı")
                         .setMessage(
-                                "Minecraft Bedrock cihazda kurulu değil."
+                                "Minecraft PE veya PF cihazda kurulu değil."
                         )
                         .setPositiveButton("Tamam", null)
                         .show();
