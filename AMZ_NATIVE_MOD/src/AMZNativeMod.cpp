@@ -46,7 +46,8 @@ bool AMZNativeMod::enable() {
 }
 
 bool AMZNativeMod::disable() {
-    getSelf().getLogger().info("AMZ Native disabled.");
+    killaura::suspend();
+    getSelf().getLogger().info("AMZ Native disabled; KillAura state reset.");
     return true;
 }
 
