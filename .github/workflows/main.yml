@@ -135,33 +135,47 @@ jobs:
               private LinearLayout moduleList, tabList;
               private final Handler monitorHandler = new Handler(Looper.getMainLooper());
               private final long serviceStartedAt = System.currentTimeMillis();
+              private String lastForegroundPackage = null;
+              private long lastForegroundEventTime = 0L;
               private final Runnable foregroundMonitor = new Runnable() {
                   @Override public void run() {
                       try {
                           UsageStatsManager usage = (UsageStatsManager)getSystemService(USAGE_STATS_SERVICE);
                           long now = System.currentTimeMillis();
-                          UsageEvents events = usage.queryEvents(now - 30000L, now);
+                          UsageEvents events = usage.queryEvents(now - 60000L, now);
                           UsageEvents.Event event = new UsageEvents.Event();
-                          String latestForeground = null;
                           while (events != null && events.hasNextEvent()) {
                               events.getNextEvent(event);
                               int type = event.getEventType();
-                              if (type == UsageEvents.Event.MOVE_TO_FOREGROUND ||
+                              boolean foregroundEvent =
+                                  type == UsageEvents.Event.MOVE_TO_FOREGROUND ||
                                   (android.os.Build.VERSION.SDK_INT >= 29 &&
-                                   type == UsageEvents.Event.ACTIVITY_RESUMED)) {
-                                  latestForeground = event.getPackageName();
+                                   type == UsageEvents.Event.ACTIVITY_RESUMED);
+                              if (foregroundEvent && event.getTimeStamp() >= lastForegroundEventTime) {
+                                  lastForegroundEventTime = event.getTimeStamp();
+                                  lastForegroundPackage = event.getPackageName();
                               }
                           }
+
                           boolean minecraftForeground =
-                              "com.mojang.minecraftpe".equals(latestForeground) ||
-                              "com.mojang.minecraftpf".equals(latestForeground);
-                          // Allow Minecraft time to finish opening before checking the foreground app.
-                          if (!minecraftForeground && now - serviceStartedAt > 12000L) {
+                              "com.mojang.minecraftpe".equals(lastForegroundPackage) ||
+                              "com.mojang.minecraftpf".equals(lastForegroundPackage);
+
+                          // Missing/empty UsageEvents during world loading are NOT proof that Minecraft closed.
+                          // Stop only after Android explicitly reports another foreground app and it remains
+                          // the latest foreground app for several seconds.
+                          boolean confirmedOutsideMinecraft =
+                              lastForegroundPackage != null &&
+                              !minecraftForeground &&
+                              lastForegroundEventTime > 0L &&
+                              now - lastForegroundEventTime > 6000L &&
+                              now - serviceStartedAt > 15000L;
+                          if (confirmedOutsideMinecraft) {
                               stopSelf();
                               return;
                           }
                       } catch (Exception ignored) {
-                          // Keep the overlay alive if Android temporarily withholds usage events.
+                          // If Android temporarily withholds usage events, keep the overlay alive.
                       }
                       monitorHandler.postDelayed(this, 1000L);
                   }
