@@ -53,9 +53,9 @@ jobs:
           source = gradle_file.read_text()
 
           for line in (
-              "    alias(libs.plugins.google.services)\\n",
-              "    alias(libs.plugins.firebase.crashlytics)\\n",
-              "    implementation files('libs/discord_partner_sdk.aar')\\n",
+              "    alias(libs.plugins.google.services)\n",
+              "    alias(libs.plugins.firebase.crashlytics)\n",
+              "    implementation files('libs/discord_partner_sdk.aar')\n",
           ):
               if line not in source:
                   raise SystemExit(f"Expected upstream integration line not found: {line.strip()}")
@@ -78,8 +78,8 @@ jobs:
                           break
               if end is None:
                   raise SystemExit("Unbalanced firebaseCrashlytics block")
-              line_start = source.rfind("\\n", 0, start) + 1
-              line_end = source.find("\\n", end)
+              line_start = source.rfind("\n", 0, start) + 1
+              line_end = source.find("\n", end)
               if line_end == -1:
                   line_end = end
               else:
