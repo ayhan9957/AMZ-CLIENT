@@ -9,6 +9,11 @@ on:
       - "AMZ_LAUNCHER_PORT/**"
   workflow_dispatch:
 
+# Keep only the newest validation build; rapid commits should not queue duplicate SDK installs.
+concurrency:
+  group: amz-launcher-validation-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
