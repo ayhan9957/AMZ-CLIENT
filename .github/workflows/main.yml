@@ -93,7 +93,7 @@ jobs:
               raise SystemExit("Could not safely patch MainActivity: expected onCreate/showHome/openMinecraft pattern was not found")
           PY
 
-      - name: Support Minecraft PE and Preview
+      - name: Support Minecraft PE only
         run: |
           python3 <<'PY'
           from pathlib import Path
@@ -104,26 +104,12 @@ jobs:
               old = 'getPackageManager().getLaunchIntentForPackage("com.mojang.minecraftpe")'
               if old not in source:
                   continue
-              source = source.replace(old, 'findMinecraftIntent()', 1)
-              helper = '''\n    private Intent findMinecraftIntent() {
-        String[] packages = {"com.mojang.minecraftpe", "com.mojang.minecraftpf"};
-        for (String packageName : packages) {
-            Intent launchIntent = getPackageManager().getLaunchIntentForPackage(packageName);
-            if (launchIntent != null) return launchIntent;
-        }
-        return null;
-    }
-'''
-              pos = source.rfind("}")
-              if pos < 0:
-                  continue
-              source = source[:pos] + helper + source[pos:]
               path.write_text(source, encoding="utf-8")
-              print(f"Minecraft PE + Preview launch support added in {path}")
+              print(f"Minecraft PE only launch configured in {path}")
               patched = True
               break
           if not patched:
-              raise SystemExit("Could not find the Minecraft PE launch call to extend")
+              raise SystemExit("Could not find the Minecraft PE launch call")
           PY
 
       - name: Find Android project
