@@ -121,13 +121,43 @@ jobs:
           from pathlib import Path
           manifest = Path(sys.argv[1])
           xml = manifest.read_text()
-          service = '        <service android:name="com.amz.client.AMZOverlayService" android:exported="false" />\\n'
+
+          # The upstream manifest deliberately removes generic foreground-service
+          # permissions. Re-enable the narrowly scoped specialUse type for AMZ.
+          xml = xml.replace(
+              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" />',
+              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />')
+          xml = xml.replace(
+              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" tools:node="remove" />',
+              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />')
+
+          service = """        <service
+                      android:name="com.amz.client.AMZOverlayService"
+                      android:exported="false"
+                      android:foregroundServiceType="specialUse">
+                      <property
+                          android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                          android:value="Floating game controls shown while the user plays Minecraft" />
+                  </service>
+          """
           if 'com.amz.client.AMZOverlayService' not in xml:
               marker = '    </application>'
               if marker not in xml:
                   raise SystemExit("Application closing tag not found")
               xml = xml.replace(marker, service + marker, 1)
-              manifest.write_text(xml)
+
+          for required in (
+              'android.permission.FOREGROUND_SERVICE',
+              'android.permission.FOREGROUND_SERVICE_SPECIAL_USE',
+              'android.permission.SYSTEM_ALERT_WINDOW',
+              'android.permission.PACKAGE_USAGE_STATS',
+              'android.permission.POST_NOTIFICATIONS',
+          ):
+              if f'android:name="{required}"' not in xml:
+                  application = xml.index('<application')
+                  xml = xml[:application] + f'    <uses-permission android:name="{required}" />\\n' + xml[application:]
+
+          manifest.write_text(xml)
           PY
           chmod +x "$dst/gradlew"
           echo "AMZ_VALIDATION_DIR=$dst" >> "$GITHUB_ENV"
