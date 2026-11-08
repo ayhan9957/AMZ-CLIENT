@@ -2,7 +2,7 @@ import { world, system, EntityDamageCause } from "@minecraft/server";
 
 // AMZ KillAura prototype.
 // Works only in worlds/servers where this behavior pack is enabled.
-// Player entities are deliberately excluded: this first build targets mobs only.
+// Targets both other players and mobs; the activating player is always excluded.
 const RANGE = 4.5;
 const DAMAGE = 3;
 const HIT_INTERVAL_TICKS = 10; // 0.5 seconds
@@ -10,7 +10,6 @@ const SCAN_INTERVAL_TICKS = 2;
 
 const lastHit = new Map();
 const ignoredTypes = new Set([
-  "minecraft:player",
   "minecraft:item",
   "minecraft:xp_orb",
   "minecraft:arrow",
