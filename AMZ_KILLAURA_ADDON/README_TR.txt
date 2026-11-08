@@ -1,27 +1,26 @@
-AMZ CLIENT - KILLAURA MOB TEST
+AMZ CLIENT - KILLAURA PROTOTYPE
 
-Bu ilk gerçek oyun-içi prototiptir. Yalnızca davranış paketinin etkin olduğu
-Minecraft Bedrock dünyalarında çalışır. Herkese açık sunuculara kendiliğinden
-bağlanmaz ve oyuncuları hedef almaz; ilk test yalnızca moblara hasar verir.
+Bu davranis paketi, etkin oldugu Minecraft Bedrock dunyalarinda etkinlestirilen oyuncuyu
+haric tutarak yakinindaki diger oyunculari ve moblari hedefleyebilir.
 
 KURULUM
-1. Bu klasörü bir .mcpack dosyasına dönüştürüp Android'e aktar.
-2. Minecraft ile açarak davranış paketini içe aktar.
-3. Kendi dünyanda Düzenle > Davranış Paketleri bölümünden AMZ paketini etkinleştir.
-4. Dünya ayarlarında gerekli komut/deney izinlerini aç.
-5. Dünyaya girince KillAura'yı açmak için:
-   /tag @s add amz_killaura
-6. Kapatmak için:
-   /tag @s remove amz_killaura
+1. GitHub Actions icinde "Build AMZ KillAura Add-on" islemini calistir.
+2. Olusan AMZ-KILLAURA-MCPACK artifact dosyasini indir.
+3. .mcpack dosyasini Android'de Minecraft ile acarak ice aktar.
+4. Kendi dunyanda Duzenle > Davranis Paketleri bolumunden AMZ paketini etkinlestir.
+5. Dunyanin PvP/komut ayarlarinin hedef oyuncuya hasara izin verdiginden emin ol.
+6. Dunyaya girince acmak icin: /tag @s add amz_killaura
+7. Kapatmak icin: /tag @s remove amz_killaura
 
 AYARLAR
-scripts/main.js dosyasında:
-- RANGE: hedef algılama mesafesi (blok)
-- DAMAGE: her vuruşta hasar
-- HIT_INTERVAL_TICKS: vuruş aralığı (20 tick = 1 saniye)
+scripts/main.js dosyasinda:
+- RANGE: hedef algilama mesafesi (blok)
+- DAMAGE: her vurusun hasari
+- HIT_INTERVAL_TICKS: ayni hedefe vurus araligi (20 tick = 1 saniye)
 
-ÖNEMLİ
-Bu paket şu an AMZ'nin kayan menüsüne bağlı değildir. Menü anahtarı henüz
-Minecraft içindeki script'e sinyal gönderemiyor. Bu bağlantı ayrı bir sonraki
-geliştirme adımıdır. Çok oyunculu sunucuda çalışması, sunucunun bu paketi
-yüklemesine ve izin vermesine bağlıdır.
+SINIRLAMALAR
+- Paket, sadece davranis paketinin yuklu ve etkin oldugu dunyalarda calisir.
+- Cok oyunculu sunucuda sunucunun bu paketi yuklemesi/izin vermesi gerekir.
+- Herkese acik sunucularda veya PvP kapali dunyalarda oyunculara hasar garanti degildir.
+- AMZ'nin kayan menu anahtari henuz bu oyun-ici scripte bagli degildir.
+- Bu prototipin Android/Minecraft 1.21.93 uzerinde gercek cihaz testi henuz yapilmamistir.
