@@ -172,16 +172,16 @@ jobs:
           main_source = main_activity.read_text()
           import_line = "import com.amz.client.AMZOverlayPermissionManager;"
           if import_line not in main_source:
-              package_line = "package org.levimc.launcher.ui.activities;\\n"
+              package_line = "package org.levimc.launcher.ui.activities;\n"
               if package_line not in main_source:
                   raise SystemExit("MainActivity package declaration not found")
-              main_source = main_source.replace(package_line, package_line + "\\n" + import_line + "\\n", 1)
-          resume_marker = "        if (!launcherInitialized) {\\n            showPostEulaFlow();\\n            return;\\n        }\\n"
+              main_source = main_source.replace(package_line, package_line + "\n" + import_line + "\n", 1)
+          resume_marker = "        if (!launcherInitialized) {\n            showPostEulaFlow();\n            return;\n        }\n"
           if resume_marker not in main_source:
               raise SystemExit("MainActivity onResume insertion point not found")
           main_source = main_source.replace(
               resume_marker,
-              resume_marker + "        AMZOverlayPermissionManager.maybePrompt(this);\\n",
+              resume_marker + "        AMZOverlayPermissionManager.maybePrompt(this);\n",
               1)
           main_activity.write_text(main_source)
 
@@ -191,15 +191,15 @@ jobs:
           loading_source = loading_activity.read_text()
           kotlin_import = "import com.amz.client.AMZOverlayPermissionManager"
           if kotlin_import not in loading_source:
-              package_line = "package org.levimc.launcher.core.minecraft\\n"
+              package_line = "package org.levimc.launcher.core.minecraft\n"
               if package_line not in loading_source:
                   raise SystemExit("MinecraftLoadingActivity package declaration not found")
-              loading_source = loading_source.replace(package_line, package_line + "\\n" + kotlin_import + "\\n", 1)
+              loading_source = loading_source.replace(package_line, package_line + "\n" + kotlin_import + "\n", 1)
           transition_marker = """        if (returningToLauncher || isFinishing || isDestroyed) return
-                 startActivity(gameIntent)"""
+        startActivity(gameIntent)"""
           transition_replacement = """        if (returningToLauncher || isFinishing || isDestroyed) return
-                 AMZOverlayPermissionManager.startOverlayIfAllowed(this)
-                 startActivity(gameIntent)"""
+        AMZOverlayPermissionManager.startOverlayIfAllowed(this)
+        startActivity(gameIntent)"""
           if transition_marker not in loading_source:
               raise SystemExit("Minecraft transition insertion point not found")
           loading_source = loading_source.replace(transition_marker, transition_replacement, 1)
