@@ -1,5 +1,6 @@
 #include "AMZNativeMod.h"
 #include "AMZRuntimeProbe.h"
+#include "AMZKillAura.h"
 #include <pl/Mod.hpp>
 #include <filesystem>
 #include <system_error>
@@ -21,7 +22,11 @@ bool AMZNativeMod::load() {
         return false;
     }
     self.getLogger().info("AMZ Native loaded. Minecraft version target: 1.21.93");
-
+    if (!killaura::registerSettings()) {
+        self.getLogger().error("AMZ: failed to register KillAura settings");
+        return false;
+    }
+    self.getLogger().info("AMZ: KillAura settings registered (CPS range 1-30, default 10)");
     return true;
 }
 
@@ -46,6 +51,7 @@ bool AMZNativeMod::disable() {
 }
 
 bool AMZNativeMod::unload() {
+    killaura::unregisterSettings();
     getSelf().getLogger().info("AMZ Native unloaded.");
     return true;
 }
