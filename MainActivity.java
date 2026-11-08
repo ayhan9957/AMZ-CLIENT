@@ -138,7 +138,7 @@ public class MainActivity extends Activity {
             if (intent != null) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
-                finish();
+                // Keep AMZ Client alive behind Minecraft so its overlay stays available.
             } else {
                 showHome();
                 new AlertDialog.Builder(this)
