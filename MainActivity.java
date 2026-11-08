@@ -136,8 +136,10 @@ public class MainActivity extends Activity {
             }
 
             if (intent != null) {
-                // Launch Minecraft from this Activity task; keep AMZ Client in Recents.
+                // Launch Minecraft in its own task so AMZ Client remains visible in Recents.
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                // Do not call finish(): keep the AMZ Client task alive behind Minecraft.
                 // Keep AMZ Client alive behind Minecraft so its overlay stays available.
             } else {
                 showHome();
