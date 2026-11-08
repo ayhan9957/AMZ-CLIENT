@@ -218,7 +218,7 @@ jobs:
               raise SystemExit("Native mod installation insertion point not found")
           runtime_source = runtime_source.replace(
               runtime_marker,
-              runtime_marker + "        val amzPackInstalled = AMZNativePackInstaller.install(context, modManager.currentVersion?.modsDir)\n        listener.onLog(if (amzPackInstalled) \"AMZ native pack installed\" else \"AMZ native pack install skipped or failed\")\n        if (amzPackInstalled) {\n            modManager.refreshMods()\n            listener.onLog(\"AMZ native pack registered for this launch\")\n        }\n",
+              runtime_marker + "        val amzPackInstalled = AMZNativePackInstaller.install(context, modManager.currentVersion?.modsDir)\n        listener.onLog(if (amzPackInstalled) \"AMZ native pack installed\" else \"AMZ native pack install skipped or failed\")\n        if (amzPackInstalled) {\n            modManager.reloadMods()\n            listener.onLog(\"AMZ native pack registered for this launch\")\n        }\n",
               1)
           runtime_preparer.write_text(runtime_source)
 
