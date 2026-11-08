@@ -40,6 +40,19 @@ jobs:
 
       - name: Install pinned Android SDK, NDK and CMake
         run: sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
+      - name: Build bundled AMZ ARM64 native mod
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358"
+          cmake -S AMZ_NATIVE_MOD -B AMZ_NATIVE_MOD/build-arm64 -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" \
+            -DANDROID_ABI=arm64-v8a \
+            -DANDROID_PLATFORM=android-28 \
+            -DANDROID_STL=c++_shared
+          cmake --build AMZ_NATIVE_MOD/build-arm64 --target levi_package --parallel 2
+          test -s AMZ_NATIVE_MOD/build-arm64/AMZ_NATIVE-arm64-v8a.levipack
 
       - name: Create isolated build copy and disable private Discord integration
         shell: bash
@@ -124,7 +137,12 @@ jobs:
           permission_src="$GITHUB_WORKSPACE/AMZ_LAUNCHER_PORT/AMZ_OVERLAY/src/main/java/com/amz/client/AMZOverlayPermissionManager.java"
           test -f "$permission_src"
           cp "$permission_src" "$dst/app/src/main/java/com/amz/client/AMZOverlayPermissionManager.java"
-          python3 - "$dst/app/src/main/AndroidManifest.xml" "$dst/app/src/main/java/org/levimc/launcher/ui/activities/MainActivity.java" "$dst/app/src/main/java/org/levimc/launcher/core/minecraft/MinecraftLoadingActivity.kt" <<'PY'
+          native_installer_src="$GITHUB_WORKSPACE/AMZ_LAUNCHER_PORT/AMZ_OVERLAY/src/main/java/com/amz/client/AMZNativePackInstaller.java"
+          test -f "$native_installer_src"
+          cp "$native_installer_src" "$dst/app/src/main/java/com/amz/client/AMZNativePackInstaller.java"
+          mkdir -p "$dst/app/src/main/assets"
+          cp "$GITHUB_WORKSPACE/AMZ_NATIVE_MOD/build-arm64/AMZ_NATIVE-arm64-v8a.levipack" "$dst/app/src/main/assets/amz_native.levipack"
+          python3 - "$dst/app/src/main/AndroidManifest.xml" "$dst/app/src/main/java/org/levimc/launcher/ui/activities/MainActivity.java" "$dst/app/src/main/java/org/levimc/launcher/core/minecraft/MinecraftLoadingActivity.kt" "$dst/app/src/main/java/org/levimc/launcher/core/minecraft/MinecraftRuntimePreparer.kt" <<'PY'
           import sys
           from pathlib import Path
           manifest = Path(sys.argv[1])
@@ -187,6 +205,23 @@ jobs:
 
           # Start the optional overlay only after runtime preparation succeeds and
           # immediately before Minecraft receives foreground.
+          runtime_preparer = Path(sys.argv[4])
+          runtime_source = runtime_preparer.read_text()
+          runtime_import = "import com.amz.client.AMZNativePackInstaller"
+          if runtime_import not in runtime_source:
+              package_line = "package org.levimc.launcher.core.minecraft\n"
+              if package_line not in runtime_source:
+                  raise SystemExit("MinecraftRuntimePreparer package declaration not found")
+              runtime_source = runtime_source.replace(package_line, package_line + "\n" + runtime_import + "\n", 1)
+          runtime_marker = "        modManager.setCurrentVersion(version)\n"
+          if runtime_marker not in runtime_source:
+              raise SystemExit("Native mod installation insertion point not found")
+          runtime_source = runtime_source.replace(
+              runtime_marker,
+              runtime_marker + "        val amzPackInstalled = AMZNativePackInstaller.install(context, modManager.currentVersion?.modsDir)\n        listener.onLog(if (amzPackInstalled) \"AMZ native pack installed\" else \"AMZ native pack install skipped or failed\")\n",
+              1)
+          runtime_preparer.write_text(runtime_source)
+
           loading_activity = Path(sys.argv[3])
           loading_source = loading_activity.read_text()
           kotlin_import = "import com.amz.client.AMZOverlayPermissionManager"
