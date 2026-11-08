@@ -87,6 +87,171 @@ jobs:
           print(f"Using current AMZ launcher screen: {target}")
           PY
 
+      - name: Add automatic AMZ floating overlay
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          candidates = list(Path("project").glob("**/app/src/main/java/**/MainActivity.java"))
+          if not candidates:
+              raise SystemExit("MainActivity.java not found")
+          activity = candidates[0]
+          package_dir = activity.parent
+          service = package_dir / "AMZOverlayService.java"
+          service.write_text(r'''package com.amz.client;
+
+          import android.app.Service;
+          import android.content.Intent;
+          import android.graphics.Color;
+          import android.graphics.PixelFormat;
+          import android.graphics.drawable.GradientDrawable;
+          import android.os.IBinder;
+          import android.view.Gravity;
+          import android.view.MotionEvent;
+          import android.view.View;
+          import android.view.WindowManager;
+          import android.widget.LinearLayout;
+          import android.widget.TextView;
+
+          public class AMZOverlayService extends Service {
+              private WindowManager wm;
+              private WindowManager.LayoutParams bubbleParams;
+              private View bubble;
+              private View panel;
+
+              private GradientDrawable bg(int color, int radius) {
+                  GradientDrawable d = new GradientDrawable();
+                  d.setColor(color);
+                  d.setCornerRadius(radius);
+                  d.setStroke(3, Color.rgb(190, 70, 255));
+                  return d;
+              }
+
+              @Override public void onCreate() {
+                  super.onCreate();
+                  wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+                  bubble = new TextView(this);
+                  ((TextView) bubble).setText("AMZ");
+                  ((TextView) bubble).setTextColor(Color.WHITE);
+                  ((TextView) bubble).setTextSize(14);
+                  ((TextView) bubble).setGravity(Gravity.CENTER);
+                  bubble.setBackground(bg(Color.rgb(35, 18, 55), 100));
+                  bubbleParams = new WindowManager.LayoutParams(
+                       sixty(), sixty(),
+                      WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                      WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                      PixelFormat.TRANSLUCENT);
+                  bubbleParams.gravity = Gravity.TOP | Gravity.END;
+                  bubbleParams.x = 18;
+                  bubbleParams.y = 150;
+                  bubble.setOnTouchListener(new View.OnTouchListener() {
+                      float downX, downY;
+                      int startX, startY;
+                      boolean moved;
+                      public boolean onTouch(View v, MotionEvent e) {
+                          if (e.getAction() == MotionEvent.ACTION_DOWN) {
+                              downX=e.getRawX(); downY=e.getRawY();
+                              startX=bubbleParams.x; startY=bubbleParams.y; moved=false;
+                              return true;
+                          }
+                          if (e.getAction() == MotionEvent.ACTION_MOVE) {
+                              float dx=e.getRawX()-downX, dy=e.getRawY()-downY;
+                              if (Math.abs(dx)>8 || Math.abs(dy)>8) moved=true;
+                              bubbleParams.x=startX-(int)dx;
+                              bubbleParams.y=startY+(int)dy;
+                              wm.updateViewLayout(bubble,bubbleParams);
+                              return true;
+                          }
+                          if (e.getAction() == MotionEvent.ACTION_UP) {
+                              if (!moved) togglePanel();
+                              return true;
+                          }
+                          return true;
+                      }
+                  });
+                  wm.addView(bubble, bubbleParams);
+              }
+
+              private int sixty() { return (int)(60 * getResources().getDisplayMetrics().density); }
+
+              private void togglePanel() {
+                  if (panel != null) {
+                      try { wm.removeView(panel); } catch (Exception ignored) {}
+                      panel = null;
+                      return;
+                  }
+                  LinearLayout box = new LinearLayout(this);
+                  box.setOrientation(LinearLayout.VERTICAL);
+                  box.setPadding(16, 12, 16, 12);
+                  box.setBackground(bg(Color.rgb(18, 16, 30), 24));
+                  String[][] groups = {
+                      {"CAM", "FreeCam", "ViewLock", "WireLock"},
+                      {"FLY", "Gravity", "Speed"},
+                      {"ATTACK", "AutoClick", "KillAura"},
+                      {"AIM", "Target", "Aimbot"},
+                      {"ESP", "Player ESP", "ESP-Chest"},
+                      {"BLOCK", "Scaffold"},
+                      {"XRAY", "Xray", "Xray-Ore"},
+                      {"HITBOX", "Hitbox", "Rainbow Hitbox"},
+                      {"C-F", "FPS", "CPS", "FPS Boost"}
+                  };
+                  for (String[] group : groups) {
+                      TextView title = new TextView(this);
+                      title.setText("▸ " + group[0]);
+                      title.setTextColor(Color.rgb(210, 120, 255));
+                      title.setTextSize(14);
+                      title.setPadding(8, 7, 8, 4);
+                      box.addView(title);
+                      for (int i=1;i<group.length;i++) {
+                          TextView item = new TextView(this);
+                          item.setText("   ◯  " + group[i]);
+                          item.setTextColor(Color.WHITE);
+                          item.setTextSize(13);
+                          item.setPadding(8, 5, 8, 5);
+                          box.addView(item);
+                      }
+                  }
+                  WindowManager.LayoutParams p = new WindowManager.LayoutParams(
+                      (int)(230*getResources().getDisplayMetrics().density),
+                      WindowManager.LayoutParams.WRAP_CONTENT,
+                      WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                      WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                      PixelFormat.TRANSLUCENT);
+                  p.gravity = Gravity.TOP | Gravity.END;
+                  p.x = 16; p.y = 220;
+                  panel = box;
+                  wm.addView(panel, p);
+              }
+
+              @Override public void onDestroy() {
+                  if (panel != null) try { wm.removeView(panel); } catch (Exception ignored) {}
+                  if (bubble != null) try { wm.removeView(bubble); } catch (Exception ignored) {}
+                  super.onDestroy();
+              }
+              @Override public IBinder onBind(Intent intent) { return null; }
+          }
+          ''', encoding="utf-8")
+          manifest = activity.parents[4] / "AndroidManifest.xml"
+          if not manifest.exists():
+              manifests = list(Path("project").glob("**/app/src/main/AndroidManifest.xml"))
+              if not manifests:
+                  raise SystemExit("AndroidManifest.xml not found")
+              manifest = manifests[0]
+          tree = ET.parse(manifest)
+          root = tree.getroot()
+          ns = "{http://schemas.android.com/apk/res/android}"
+          app = root.find("application")
+          if app is None:
+              raise SystemExit("Manifest application element missing")
+          if not any(x.get(ns+"name") == ".AMZOverlayService" for x in app.findall("service")):
+              svc = ET.SubElement(app, "service")
+              svc.set(ns+"name", ".AMZOverlayService")
+              svc.set(ns+"exported", "false")
+          tree.write(manifest, encoding="utf-8", xml_declaration=True)
+          print("AMZ floating overlay service and manifest entry added")
+          PY
+
       - name: Find Android project
         run: |
           PROJECT_DIR=$(find project -name settings.gradle -type f | head -n 1 | xargs dirname)
