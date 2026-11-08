@@ -70,7 +70,7 @@ jobs:
           tree.write(path, encoding='utf-8', xml_declaration=True)
           PY
 
-      - name: Launch original Minecraft PF automatically
+      - name: Launch original Minecraft PE or PF automatically
         run: |
           python3 <<'PY'
           from pathlib import Path
@@ -82,11 +82,14 @@ jobs:
 
           for path in files:
               source = path.read_text(encoding="utf-8")
-              match = re.search(r"\bonCreate\s*\([^)]*\)\s*\{", source)
+              if "AMZ_SUPPORTED_MINECRAFT_PACKAGES" in source:
+                  print(f"PE and PF launch support already present in {path}")
+                  raise SystemExit(0)
+
+              match = re.search(r"\\bonCreate\\s*\\([^)]*\\)\\s*\\{", source)
               if not match:
                   continue
 
-              # Find the matching closing brace of onCreate without relying on method names.
               opening = source.find("{", match.start())
               depth = 0
               closing = None
@@ -101,34 +104,31 @@ jobs:
               if closing is None:
                   continue
 
-              body = source[opening:closing]
-              if "com.mojang.minecraftpf" in body and "getLaunchIntentForPackage" in body:
-                  print(f"Minecraft PE launch already present in {path}")
-                  raise SystemExit(0)
-
-              launch = '''
-                  // AMZ_SUPPORTED_MINECRAFT_PACKAGES
-                  String[] amzMinecraftPackages = {
-                      "com.mojang.minecraftpe",
-                      "com.mojang.minecraftpf"
-                  };
-                  boolean amzMinecraftStarted = false;
-                  for (String amzPackage : amzMinecraftPackages) {
-                      android.content.Intent amzMinecraftIntent =
-                          getPackageManager().getLaunchIntentForPackage(amzPackage);
-                      if (amzMinecraftIntent != null) {
-                          startActivity(amzMinecraftIntent);
-                          amzMinecraftStarted = true;
-                          break;
-                      }
-                  }
-                  if (!amzMinecraftStarted) {
-                      android.widget.Toast.makeText(this, "Minecraft PE veya PF yüklü değil", android.widget.Toast.LENGTH_LONG).show();
-                  }
-
+              launch_lines = [
+                  "        // AMZ_SUPPORTED_MINECRAFT_PACKAGES",
+                  "        String[] amzMinecraftPackages = {",
+                  '            "com.mojang.minecraftpe",',
+                  '            "com.mojang.minecraftpf"',
+                  "        };",
+                  "        boolean amzMinecraftStarted = false;",
+                  "        for (String amzPackage : amzMinecraftPackages) {",
+                  "            android.content.Intent amzMinecraftIntent =",
+                  "                getPackageManager().getLaunchIntentForPackage(amzPackage);",
+                  "            if (amzMinecraftIntent != null) {",
+                  "                startActivity(amzMinecraftIntent);",
+                  "                amzMinecraftStarted = true;",
+                  "                break;",
+                  "            }",
+                  "        }",
+                  "        if (!amzMinecraftStarted) {",
+                  '            android.widget.Toast.makeText(this, "Minecraft PE veya PF yüklü değil", android.widget.Toast.LENGTH_LONG).show();',
+                  "        }",
+                  ""
+              ]
+              launch = "\\n".join(launch_lines)
               source = source[:closing] + launch + source[closing:]
               path.write_text(source, encoding="utf-8")
-              print(f"Inserted automatic Minecraft PE launch into {path}")
+              print(f"Inserted PE and PF launch support into {path}")
               raise SystemExit(0)
 
           raise SystemExit("Could not find onCreate method in MainActivity.java")
