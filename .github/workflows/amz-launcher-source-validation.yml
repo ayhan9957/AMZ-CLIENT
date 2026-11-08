@@ -1,0 +1,45 @@
+name: AMZ Launcher Source Validation
+
+on:
+  push:
+    branches:
+      - amz-launcher-integration
+    paths:
+      - "AMZ_LAUNCHER_PORT/**"
+      - ".gitmodules"
+      - ".github/workflows/amz-launcher-source-validation.yml"
+  pull_request:
+    branches:
+      - amz-launcher-integration
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout AMZ and pinned launcher source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Verify launcher runtime entry points and license
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="AMZ_LAUNCHER_PORT/LeviLaunchroid"
+          test -f "$root/LICENSE"
+          test -f "$root/settings.gradle"
+          test -f "$root/app/build.gradle"
+          test -f "$root/app/src/main/AndroidManifest.xml"
+          test -f "$root/app/src/main/java/org/levimc/launcher/core/minecraft/MinecraftRuntimePreparer.kt"
+          test -f "$root/app/src/main/java/org/levimc/launcher/core/mods/ModNativeLoader.java"
+          test -f "$root/app/src/main/java/org/levimc/launcher/core/mods/ModManager.java"
+          test -f "$root/app/src/main/cpp/CMakeLists.txt"
+          test -d "$root/app/src/main/cpp/preloader"
+          test -d "$root/app/src/main/cpp/libHttpClient"
+          grep -q "System.load(targetFile.getAbsolutePath())" "$root/app/src/main/java/org/levimc/launcher/core/mods/ModNativeLoader.java"
+          echo "Pinned launcher source, native-mod loader, runtime preparer, license, and recursive submodules are present."
+          echo "This job validates source availability only; it does not build an AMZ APK or claim gameplay features work."

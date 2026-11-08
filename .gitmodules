@@ -1,0 +1,3 @@
+[submodule "AMZ_LAUNCHER_PORT/LeviLaunchroid"]
+	path = AMZ_LAUNCHER_PORT/LeviLaunchroid
+	url = https://github.com/LiteLDev/LeviLaunchroid
