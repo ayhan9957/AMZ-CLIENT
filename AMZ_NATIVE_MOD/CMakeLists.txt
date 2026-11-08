@@ -27,7 +27,7 @@ if(NOT TARGET preloader)
   add_subdirectory("${preloader_android_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/_preloader_android")
 endif()
 
-add_library(amz_native SHARED src/main.cpp src/AMZNativeMod.cpp)
+add_library(amz_native SHARED src/main.cpp src/AMZNativeMod.cpp src/AMZRuntimeProbe.cpp)
 target_include_directories(amz_native PRIVATE src "${LEVI_PRELOADER_INCLUDE_DIR}")
 target_link_libraries(amz_native PRIVATE preloader)
 target_link_options(amz_native PRIVATE "-Wl,-z,max-page-size=16384")
