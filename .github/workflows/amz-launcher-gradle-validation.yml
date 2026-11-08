@@ -30,11 +30,9 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          packages: platform-tools
 
-      - name: Install pinned Android NDK and CMake
-        run: sdkmanager --install "platforms;android-36" "build-tools;36.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
+      - name: Install pinned Android SDK, NDK and CMake
+        run: sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
 
       - name: Create isolated build copy and disable private Discord integration
         shell: bash
@@ -63,7 +61,6 @@ jobs:
                   raise SystemExit(f"Expected upstream integration line not found: {line.strip()}")
               source = source.replace(line, "")
 
-          # Remove only the three Crashlytics DSL blocks; preserve the surrounding build types.
           marker = "firebaseCrashlytics {"
           while marker in source:
               start = source.index(marker)
@@ -106,14 +103,10 @@ jobs:
           }
           """)
 
-          if "discord_partner_sdk.aar" in gradle_file.read_text():
-              raise SystemExit("Private Discord AAR reference remains")
-          if "libs.plugins.google.services" in gradle_file.read_text():
-              raise SystemExit("Google Services plugin remains enabled")
-          if "libs.plugins.firebase.crashlytics" in gradle_file.read_text():
-              raise SystemExit("Crashlytics Gradle plugin remains enabled")
-          if marker in gradle_file.read_text():
-              raise SystemExit("Crashlytics DSL remains enabled")
+          patched = gradle_file.read_text()
+          for forbidden in ("discord_partner_sdk.aar", "libs.plugins.google.services", "libs.plugins.firebase.crashlytics", marker):
+              if forbidden in patched:
+                  raise SystemExit(f"Disabled integration remains: {forbidden}")
           print("Isolated copy prepared; upstream source and AMZ application files were not modified.")
           PY
           chmod +x "$dst/gradlew"
