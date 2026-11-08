@@ -1,26 +1,26 @@
-AMZ CLIENT - KILLAURA PROTOTYPE
+AMZ CLIENT - KOMUTSU OYUN ICI MENU
 
-Bu davranis paketi, etkin oldugu Minecraft Bedrock dunyalarinda etkinlestirilen oyuncuyu
-haric tutarak yakinindaki diger oyunculari ve moblari hedefleyebilir.
+Bu paket, davranis paketinin yuklu oldugu Bedrock dunyalarinda AMZ oyun ici menu saglar.
 
-KURULUM
-1. GitHub Actions icinde "Build AMZ KillAura Add-on" islemini calistir.
-2. Olusan AMZ-KILLAURA-MCPACK artifact dosyasini indir.
-3. .mcpack dosyasini Android'de Minecraft ile acarak ice aktar.
-4. Kendi dunyanda Duzenle > Davranis Paketleri bolumunden AMZ paketini etkinlestir.
-5. Dunyanin PvP/komut ayarlarinin hedef oyuncuya hasara izin verdiginden emin ol.
-6. Dunyaya girince acmak icin: /tag @s add amz_killaura
-7. Kapatmak icin: /tag @s remove amz_killaura
+KULLANIM
+1. AMZ-KILLAURA.mcpack paketini Minecraft'a aktar.
+2. Kendi dunyanda Davranis Paketleri bolumunden AMZ Client paketini etkinlestir.
+3. Oyunda pusulayi eline alip kullan. AMZ CLIENT menusu acilir.
+4. KillAura AC/KAPAT dugmesiyle komutsuz kontrol edilir.
 
-AYARLAR
-scripts/main.js dosyasinda:
-- RANGE: hedef algilama mesafesi (blok)
-- DAMAGE: her vurusun hasari
-- HIT_INTERVAL_TICKS: ayni hedefe vurus araligi (20 tick = 1 saniye)
+KILLAURA
+- 4.5 blok icindeki uygun entity'leri hedefler.
+- Oyunculari ve moblari hedefleyebilir.
+- Hasar ve saldiri hizi kodda sabittir.
 
-SINIRLAMALAR
-- Paket, sadece davranis paketinin yuklu ve etkin oldugu dunyalarda calisir.
-- Cok oyunculu sunucuda sunucunun bu paketi yuklemesi/izin vermesi gerekir.
-- Herkese acik sunucularda veya PvP kapali dunyalarda oyunculara hasar garanti degildir.
-- AMZ'nin kayan menu anahtari henuz bu oyun-ici scripte bagli degildir.
-- Bu prototipin Android/Minecraft 1.21.93 uzerinde gercek cihaz testi henuz yapilmamistir.
+MULTIPLAYER
+- Multiplayer'da calismasi icin davranis paketinin sunucuda/dunyada etkin olmasi gerekir.
+- Sadece oyuncunun telefonuna kurmak, baska sunucularda calistirmaz.
+- Sunucu yoneticisinin paketi yuklemesi ve etkinlestirmesi gerekir.
+- Sunucu ayarlari/PvP kurallari hasari engelleyebilir.
+
+SINIRLAR
+- Bu paket AMZ Android yuvarlak menusune henuz bagli degildir.
+- Compass ile acilan oyun ici menu su an KillAura kontrolunu saglar.
+- Diger moduller henuz uygulanmamistir; acikmis gibi gosterilmez.
+- Her Bedrock surumunde ve sunucuda test edilmis oldugu iddia edilmez.
