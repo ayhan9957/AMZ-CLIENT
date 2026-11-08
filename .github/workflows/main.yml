@@ -104,6 +104,10 @@ jobs:
           
           import android.app.Service;
           import android.content.Intent;
+          import android.content.ClipData;
+          import android.content.ClipboardManager;
+          import android.content.Context;
+          import android.widget.Toast;
           import android.graphics.Color;
           import android.graphics.PixelFormat;
           import android.graphics.Typeface;
@@ -129,7 +133,7 @@ jobs:
               private final String[][] modules = {
                   {"FreeCam","Camera controls • Demo"},{"ViewLock","View lock • Demo"},{"WireLock","Wire view • Demo"},
                   {"Gravity","Gravity control • Demo"},{"Speed","Movement speed • Demo"},
-                  {"AutoClick","Tap automation • Demo"},{"KillAura","Attack assist • Demo"},
+                  {"AutoClick","Tap automation • Demo"},{"KillAura","Players + mobs • In-game command"},
                   {"Target","Target selector • Demo"},{"Aimbot","Aim helper • Demo"},
                   {"Player ESP","Player overlay • Demo"},{"ESP-Chest","Chest highlight • Demo"},
                   {"Scaffold","Block placement • Demo"},
@@ -284,7 +288,13 @@ jobs:
                           boolean enabled=Boolean.TRUE.equals(toggle.getTag());
                           toggle.setTag(!enabled); toggle.setText(enabled?"OFF":"ON");
                           toggle.setTextColor(enabled?Color.rgb(169,156,184):Color.WHITE);
-                          toggle.setBackground(bg(enabled?Color.rgb(43,38,51):Color.rgb(117,62,155),8,enabled?Color.rgb(67,57,78):Color.rgb(205,139,255)));
+                          toggle.setBackground(bg(enabled?Color.rgb(43,38,51):Color.rgb(117,62,78),8,enabled?Color.rgb(67,57,78):Color.rgb(205,139,255)));
+                          if ("KillAura".equals(name)) {
+                              String command = enabled ? "/tag @s remove amz_killaura" : "/tag @s add amz_killaura";
+                              ClipboardManager clipboard = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
+                              clipboard.setPrimaryClip(ClipData.newPlainText("AMZ KillAura", command));
+                              Toast.makeText(this, "Komut kopyalandi: Minecraft sohbetine yapistirip gonder", Toast.LENGTH_LONG).show();
+                          }
                       });
                       LinearLayout.LayoutParams rp=lp(-1,58); rp.setMargins(0,dp(3),0,dp(3)); moduleList.addView(row,rp);
                   }
