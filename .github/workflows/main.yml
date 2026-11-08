@@ -107,14 +107,25 @@ jobs:
                   raise SystemExit(0)
 
               launch = '''
-                  android.content.Intent amzMinecraftIntent =
-                      getPackageManager().getLaunchIntentForPackage("com.mojang.minecraftpf");
-                  if (amzMinecraftIntent != null) {
-                      startActivity(amzMinecraftIntent);
-                  } else {
-                      android.widget.Toast.makeText(this, "Minecraft PF yüklü değil", android.widget.Toast.LENGTH_LONG).show();
+                  // AMZ_SUPPORTED_MINECRAFT_PACKAGES
+                  String[] amzMinecraftPackages = {
+                      "com.mojang.minecraftpe",
+                      "com.mojang.minecraftpf"
+                  };
+                  boolean amzMinecraftStarted = false;
+                  for (String amzPackage : amzMinecraftPackages) {
+                      android.content.Intent amzMinecraftIntent =
+                          getPackageManager().getLaunchIntentForPackage(amzPackage);
+                      if (amzMinecraftIntent != null) {
+                          startActivity(amzMinecraftIntent);
+                          amzMinecraftStarted = true;
+                          break;
+                      }
                   }
-              '''
+                  if (!amzMinecraftStarted) {
+                      android.widget.Toast.makeText(this, "Minecraft PE veya PF yüklü değil", android.widget.Toast.LENGTH_LONG).show();
+                  }
+
               source = source[:closing] + launch + source[closing:]
               path.write_text(source, encoding="utf-8")
               print(f"Inserted automatic Minecraft PE launch into {path}")
