@@ -29,10 +29,8 @@ public final class AMZNativePackInstaller {
         File target = new File(modsDirectory, MOD_ID);
         File manifest = new File(target, "manifest.json");
         File entry = new File(target, "libamz_native.so");
-        if (manifest.isFile() && entry.isFile() && entry.length() > 0) {
-            return true;
-        }
-
+        // Always refresh the bundled library: otherwise an existing install can
+        // silently keep an older .so after a launcher update.
         File staging = new File(modsDirectory, MOD_ID + ".amz_tmp");
         if (!modsDirectory.exists() && !modsDirectory.mkdirs()) {
             Log.e(TAG, "Cannot create mods directory: " + modsDirectory);
