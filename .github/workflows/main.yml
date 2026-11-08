@@ -70,7 +70,7 @@ jobs:
           tree.write(path, encoding='utf-8', xml_declaration=True)
           PY
 
-      - name: Launch original Minecraft PE automatically
+      - name: Launch original Minecraft PF automatically
         run: |
           python3 <<'PY'
           from pathlib import Path
@@ -102,17 +102,17 @@ jobs:
                   continue
 
               body = source[opening:closing]
-              if "com.mojang.minecraftpe" in body and "getLaunchIntentForPackage" in body:
+              if "com.mojang.minecraftpf" in body and "getLaunchIntentForPackage" in body:
                   print(f"Minecraft PE launch already present in {path}")
                   raise SystemExit(0)
 
               launch = '''
                   android.content.Intent amzMinecraftIntent =
-                      getPackageManager().getLaunchIntentForPackage("com.mojang.minecraftpe");
+                      getPackageManager().getLaunchIntentForPackage("com.mojang.minecraftpf");
                   if (amzMinecraftIntent != null) {
                       startActivity(amzMinecraftIntent);
                   } else {
-                      android.widget.Toast.makeText(this, "Minecraft PE yüklü değil", android.widget.Toast.LENGTH_LONG).show();
+                      android.widget.Toast.makeText(this, "Minecraft PF yüklü değil", android.widget.Toast.LENGTH_LONG).show();
                   }
               '''
               source = source[:closing] + launch + source[closing:]
