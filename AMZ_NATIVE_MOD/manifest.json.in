@@ -1,0 +1,8 @@
+{
+  "type": "preload-native",
+  "name": "AMZ Native",
+  "author": "AMZ Client",
+  "version": "0.1.0",
+  "entry": "libamz_native.so",
+  "minecraft_versions": ["1.21.93"]
+}
