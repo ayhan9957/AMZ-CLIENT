@@ -49,7 +49,7 @@ public final class AMZNativePackInstaller {
             ZipEntry zipEntry;
             byte[] buffer = new byte[32768];
             while ((zipEntry = zip.getNextEntry()) != null) {
-                String name = zipEntry.getName().replace('\\\\', '/');
+                String name = zipEntry.getName().replace('\\', '/');
                 if (!name.startsWith(MOD_ID + "/")) {
                     zip.closeEntry();
                     continue;
