@@ -83,7 +83,7 @@ jobs:
               source = path.read_text(encoding="utf-8")
               if "openMinecraft()" not in source or "showHome();" not in source:
                   continue
-              updated, count = re.subn(r"(protected\\s+void\\s+onCreate\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?)showHome\\(\\);", r"\\1openMinecraft();", source, count=1)
+              updated, count = re.subn(r"(protected\s+void\s+onCreate\s*\([^)]*\)\s*\{[\s\S]*?)showHome\(\);", r"\1openMinecraft();", source, count=1)
               if count:
                   path.write_text(updated, encoding="utf-8")
                   print(f"Automatic original Minecraft launch enabled in {path}")
