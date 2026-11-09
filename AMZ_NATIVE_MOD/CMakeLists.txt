@@ -15,12 +15,12 @@ FetchContent_GetProperties(preloader_android)
 set(LEVI_PRELOADER_INCLUDE_DIR "${preloader_android_SOURCE_DIR}/include")
 
 if(NOT ANDROID)
-  message(STATUS "AMZ native mod: configure with Android NDK for arm64-v8a")
+  message(STATUS "AMZ native mod: configure with Android NDK for armeabi-v7a")
   return()
 endif()
 
-if(NOT CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
-  message(FATAL_ERROR "AMZ native mod currently targets arm64-v8a only")
+if(NOT CMAKE_ANDROID_ARCH_ABI STREQUAL "armeabi-v7a")
+  message(FATAL_ERROR "AMZ native mod currently targets armeabi-v7a only")
 endif()
 
 if(NOT TARGET preloader)
@@ -43,7 +43,7 @@ add_custom_command(TARGET amz_native POST_BUILD
   COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_BINARY_DIR}/manifest.json" "${MOD_PACKAGE_DIR}/manifest.json"
 )
 add_custom_target(levi_package
-  COMMAND "${CMAKE_COMMAND}" -E tar cf "${CMAKE_CURRENT_BINARY_DIR}/AMZ_NATIVE-arm64-v8a.levipack" --format=zip amz_native
+  COMMAND "${CMAKE_COMMAND}" -E tar cf "${CMAKE_CURRENT_BINARY_DIR}/AMZ_NATIVE-armeabi-v7a.levipack" --format=zip amz_native
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/package"
   DEPENDS amz_native
 )
