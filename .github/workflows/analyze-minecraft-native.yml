@@ -1,0 +1,63 @@
+name: Analyze Minecraft Native Library
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [amz-launcher-integration]
+    paths:
+      - ".github/workflows/analyze-minecraft-native.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install ELF inspection tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y binutils file
+
+      - name: Download and verify uploaded Minecraft library
+        run: |
+          mkdir -p analysis
+          curl -fL --retry 3 \
+            "https://github.com/ayhan9957/AMZ-CLIENT/releases/download/native-lib-test/libminecraftpe.so" \
+            -o analysis/libminecraftpe.so
+          echo "e4e9437089f0d28644ec03fdb70bb7d9ede50d769721cace45dd4f33d2d0b361  analysis/libminecraftpe.so" | sha256sum -c -
+
+      - name: Inspect ELF metadata and exported symbols
+        run: |
+          {
+            echo "=== FILE ==="
+            file analysis/libminecraftpe.so
+            echo
+            echo "=== SHA256 ==="
+            sha256sum analysis/libminecraftpe.so
+            echo
+            echo "=== ELF HEADER ==="
+            readelf -h analysis/libminecraftpe.so
+            echo
+            echo "=== BUILD ID / NOTES ==="
+            readelf -n analysis/libminecraftpe.so
+            echo
+            echo "=== DYNAMIC SECTION ==="
+            readelf -d analysis/libminecraftpe.so
+            echo
+            echo "=== DYNAMIC SYMBOLS ==="
+            readelf --dyn-syms --wide analysis/libminecraftpe.so
+            echo
+            echo "=== EXPORTED DEMANGLED SYMBOLS ==="
+            nm -D -C --defined-only analysis/libminecraftpe.so || true
+            echo
+            echo "=== RELEVANT STRINGS ==="
+            strings -a analysis/libminecraftpe.so | grep -Ei 'Actor|Player|Mob|Entity|Level|GameMode|attack|swing|hurt|damage|hit|minecraft|raknet|combat|target' | head -n 250 || true
+          } > analysis/native-analysis.txt
+
+      - name: Upload analysis report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Minecraft-Native-Analysis
+          path: analysis/native-analysis.txt
+          if-no-files-found: error
