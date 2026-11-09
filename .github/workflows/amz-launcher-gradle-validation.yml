@@ -114,29 +114,6 @@ jobs:
 
           gradle_file.write_text(source)
 
-          # ARMv7 has 32-bit size_t. The upstream NBT helper intentionally uses
-          # 64-bit FNV constants, but upstream -Werror promotes the narrowing
-          # diagnostic to a hard failure. Keep the diagnostic visible without
-          # making this architecture-specific warning fatal.
-          cmake_file = root / "app/src/main/cpp/CMakeLists.txt"
-          if not cmake_file.is_file():
-              raise SystemExit("Upstream native CMakeLists.txt not found")
-          cmake_source = cmake_file.read_text()
-          if "-Wno-error=constant-conversion" not in cmake_source:
-              minimum = "cmake_minimum_required("
-              start = cmake_source.find(minimum)
-              if start < 0:
-                  raise SystemExit("CMake minimum version declaration not found")
-              line_end = cmake_source.find("\\n", start)
-              if line_end < 0:
-                  raise SystemExit("CMake minimum version line is incomplete")
-              cmake_source = (cmake_source[:line_end + 1]
-                              + "\\n# Allow ARMv7 NBT 64-bit constant conversion warnings under upstream -Werror.\\n"
-                              + "add_compile_options(-Wno-error=constant-conversion)\\n"
-                              + cmake_source[line_end + 1:])
-              cmake_file.write_text(cmake_source)
-
-
           discord_dir = root / "app/src/main/java/org/levimc/launcher/core/discord"
           (discord_dir / "DiscordPresence.java").unlink()
           (discord_dir / "DiscordPresence.java").write_text("""package org.levimc.launcher.core.discord;
