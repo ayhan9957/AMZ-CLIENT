@@ -6,14 +6,16 @@ on:
     paths:
       - "AMZ_NATIVE_MOD/**"
       - ".github/workflows/build-amz-native.yml"
-    branches: [main]
+    branches: [amz-launcher-integration]
 
 jobs:
-  build-arm64:
+  build-armv7:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: amz-launcher-integration
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
@@ -24,22 +26,22 @@ jobs:
         run: echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.2.13676358" >> "$GITHUB_ENV"
       - name: Install Ninja
         run: sudo apt-get update && sudo apt-get install -y ninja-build
-      - name: Configure ARM64 native mod
+      - name: Configure armeabi-v7a native mod
         working-directory: AMZ_NATIVE_MOD
         run: |
-          cmake -S . -B build-arm64 -G Ninja \
+          cmake -S . -B build-armv7 -G Ninja \
             -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" \
-            -DANDROID_ABI=arm64-v8a \
+            -DANDROID_ABI=armeabi-v7a \
             -DANDROID_PLATFORM=android-28 \
             -DANDROID_STL=c++_shared
       - name: Build .so and .levipack
         working-directory: AMZ_NATIVE_MOD
-        run: cmake --build build-arm64 --target levi_package --parallel 2
+        run: cmake --build build-armv7 --target levi_package --parallel 2
       - name: Upload native module
         uses: actions/upload-artifact@v4
         with:
-          name: AMZ-NATIVE-arm64
+          name: AMZ-NATIVE-armeabi-v7a
           path: |
-            AMZ_NATIVE_MOD/build-arm64/AMZ_NATIVE-arm64-v8a.levipack
-            AMZ_NATIVE_MOD/build-arm64/package/amz_native/libamz_native.so
+            AMZ_NATIVE_MOD/build-armv7/AMZ_NATIVE-armeabi-v7a.levipack
+            AMZ_NATIVE_MOD/build-armv7/package/amz_native/libamz_native.so
           if-no-files-found: error
